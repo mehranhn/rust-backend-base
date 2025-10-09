@@ -1,0 +1,35 @@
+[workspace]
+resolver = "3"
+members = ["backend", "dto-variants"]
+
+[workspace.package]
+edition = "2024"
+authors = ["Mehran Hadinezhad"]
+description = "Base packges"
+readme = "./README.md"
+license = "GPLv3"
+
+[workspace.dependencies]
+serde = "1.0.219"
+serde_json = "1.0.143"
+thiserror = "2.0.16"
+sqlx = { version = "0.8.6", features = ["derive", "postgres", "time", "runtime-tokio-native-tls", "uuid"] }
+time = "0.3.43"
+uuid = { version = "1.18.1", features = ["serde", "v4", "v7"] }
+tokio = { version = "1.47.1", features = ["full"]}
+tokio-util = "0.7.16"
+futures = "0.3.31"
+utoipa = { version = "5.4.0", features = ["time", "axum_extras", "uuid", "preserve_order", "preserve_path_order"] }
+axum = { version = "0.8.4", features = ["http2", "macros"] }
+dotenvy = "0.15.7"
+itertools = "0.14.0"
+sea-query = { version = "0.32.7", default-features = false, features = ["derive", "backend-postgres", "time"] }
+tracing = "0.1.41"
+dto-variants = { path = "./dto-variants" }
+anyhow = "1.0.99"
+
+# TODO: put it under a feature flag later -> inmemory
+flurry = "0.5.2"
+
+# TODO: -> redis
+redis = { version = "0.32.5", features = ["tokio-rustls-comp", "connection-manager"] }

@@ -1,0 +1,8 @@
+edition = "2024"
+fn_params_layout = "Compressed"
+max_width = 100
+# use_small_heuristics = "Max"
+hard_tabs = true
+match_block_trailing_comma = true
+newline_style = "Unix"
+short_array_element_width_threshold = 40

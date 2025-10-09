@@ -1,0 +1,29 @@
+[package]
+name = "rust-base-backend"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+sqlx = { workspace = true }
+time = { workspace = true }
+uuid = { workspace = true }
+dto-variants = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+utoipa = { workspace = true }
+axum = { workspace = true }
+dotenvy = { workspace = true }
+itertools = { workspace = true }
+sea-query = { workspace = true }
+tracing = { workspace = true }
+flurry = { workspace = true }
+redis = { workspace = true }
