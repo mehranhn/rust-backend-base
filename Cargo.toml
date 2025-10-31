@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["backend", "dto-variants"]
+members = ["backend", "custom-macros"]
 
 [workspace.package]
 edition = "2024"
@@ -10,26 +10,27 @@ readme = "./README.md"
 license = "GPLv3"
 
 [workspace.dependencies]
-serde = "1.0.219"
-serde_json = "1.0.143"
-thiserror = "2.0.16"
+serde = "1.0.228"
+serde_with = { version = "3.15.1", features = ["time_0_3"] }
+serde_json = "1.0.145"
+thiserror = "2.0.17"
 sqlx = { version = "0.8.6", features = ["derive", "postgres", "time", "runtime-tokio-native-tls", "uuid"] }
-time = "0.3.43"
+time = { version = "0.3.44", features = ["serde", "serde-human-readable"] }
 uuid = { version = "1.18.1", features = ["serde", "v4", "v7"] }
-tokio = { version = "1.47.1", features = ["full"]}
+tokio = { version = "1.47.2", features = ["full"]}
 tokio-util = "0.7.16"
 futures = "0.3.31"
 utoipa = { version = "5.4.0", features = ["time", "axum_extras", "uuid", "preserve_order", "preserve_path_order"] }
-axum = { version = "0.8.4", features = ["http2", "macros"] }
+axum = { version = "0.8.6", features = ["http2", "macros"] }
 dotenvy = "0.15.7"
 itertools = "0.14.0"
 sea-query = { version = "0.32.7", default-features = false, features = ["derive", "backend-postgres", "time"] }
 tracing = "0.1.41"
-dto-variants = { path = "./dto-variants" }
-anyhow = "1.0.99"
+custom-macros = { path = "./custom-macros" }
+anyhow = "1.0.100"
 
 # TODO: put it under a feature flag later -> inmemory
-flurry = "0.5.2"
+papaya = "0.2.3"
 
 # TODO: -> redis
 redis = { version = "0.32.5", features = ["tokio-rustls-comp", "connection-manager"] }

@@ -1,0 +1,1 @@
+pub const MAX_PAGINATION_SIZE: u32 = 100;
