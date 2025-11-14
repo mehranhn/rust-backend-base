@@ -67,13 +67,13 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>,
                                 ))
                             },
 							None => Err(syn::Error::new(
-								ast.span(),
+								fields_named.span(),
 								"the enum variant must have only 1 field",
 							)),
 						}
 					} else {
 						Err(syn::Error::new(
-							ast.span(),
+							fields_named.span(),
 							"the enum variant must have only 1 field",
 						))
 					}
@@ -87,7 +87,7 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>,
 						))
 					} else {
 						Err(syn::Error::new(
-							ast.span(),
+							fields_unnamed.span(),
 							"the enum variant must have only 1 field",
 						))
 					}
@@ -99,7 +99,7 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>,
 				)),
 			},
 			None => Err(syn::Error::new(
-				ast.span(),
+				data_enum.variants.span(),
 				"specify the variant with #[dyn_error] or a variant with one of these names: ServerError, Generic, DynError",
 			)),
 		},

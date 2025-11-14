@@ -1,0 +1,135 @@
+use proc_macro::TokenStream;
+use proc_macro2::Literal;
+use quote::quote;
+
+use crate::from_sqlx_error::parse::{CustomError, CustomErrorVariant, FromSqlxParsedAst, Generic, GenericVariant};
+
+fn generate_generic(data: Generic<'_>) -> proc_macro2::TokenStream {
+	match data.variant {
+		GenericVariant::Unit => {
+			let ident = data.enum_variant_name;
+
+			quote! {
+				Self::#ident
+			}
+		},
+		GenericVariant::Struct {
+			field_name,
+			is_boxed,
+		} => {
+			if is_boxed {
+				let ident = data.enum_variant_name;
+
+				quote! {
+					Self::#ident { #field_name: Box::new(value) }
+				}
+			} else {
+				let ident = data.enum_variant_name;
+
+				quote! {
+					Self::#ident { #field_name: value }
+				}
+			}
+		},
+		GenericVariant::Tupple { is_boxed } => {
+			if is_boxed {
+				let ident = data.enum_variant_name;
+
+				quote! {
+					Self::#ident(Box::new(value))
+				}
+			} else {
+				let ident = data.enum_variant_name;
+
+				quote! {
+					Self::#ident(value)
+				}
+			}
+		},
+	}
+}
+
+fn generate_custom(data: CustomError) -> proc_macro2::TokenStream {
+    let ident = data.enum_variant_name;
+    match data.variant {
+        CustomErrorVariant::NotFound => {
+            quote! {
+                if e.message() == "NOT_FOUND" {
+                    return Self::#ident;
+                }
+            }
+        },
+        CustomErrorVariant::Constraint(c) => {
+            let literal = Literal::string(c.as_str());
+
+            quote! {
+                if let Some(_) = e.try_downcast_ref::<sqlx::postgres::PgDatabaseError>() {
+                    if let Some(constraint_name) = e.constraint() {
+                        if constraint_name == #literal {
+                            return Self::#ident;
+                        }
+                    }
+                } else {
+                    if e.message().contains(#literal) {
+                        return Self::#ident;
+                    }
+                }
+            }
+        },
+        CustomErrorVariant::MessageIncludes(m) => {
+            let literal = Literal::string(m.as_str());
+
+            quote! {
+                if e.message().contains(#literal) {
+                    return Self::#ident;
+                }
+            }
+        },
+        CustomErrorVariant::IsUnique => {
+            quote! {
+                if e.is_unique_violation() {
+                    return Self::#ident;
+                }
+            }
+        },
+        CustomErrorVariant::IsForeignKey => {
+            quote! {
+                if e.is_foreign_key_violation() {
+                    return Self::#ident;
+                }
+            }
+        }
+        CustomErrorVariant::IsCheck => {
+            quote! {
+                if e.is_check_violation() {
+                    return Self::#ident;
+                }
+            }
+        },
+    }
+}
+
+pub fn generate<'a>(data: FromSqlxParsedAst<'a>) -> TokenStream {
+	let enum_name = data.enum_name;
+	let generic_code = generate_generic(data.generic_variant);
+    let custom_code = data.custom_errors.into_iter().map(|c| generate_custom(c));
+
+	let code = quote! {
+		impl From<sqlx::Error> for #enum_name {
+			fn from(value: sqlx::Error) -> Self {
+				match &value {
+					sqlx::Error::Database(e) => {
+                        #(#custom_code)*
+
+						#generic_code
+					},
+					_ => {
+						#generic_code
+					},
+				}
+			}
+		}
+	};
+
+	code.into()
+}
