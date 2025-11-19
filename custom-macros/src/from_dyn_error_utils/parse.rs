@@ -50,8 +50,8 @@ fn find_target_variant(data_enum: &DataEnum) -> Option<&Variant> {
 
 pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>, syn::Error> {
 	match &ast.data {
-		syn::Data::Struct(_) => Err(syn::Error::new(
-			ast.span(),
+		syn::Data::Struct(data_struct) => Err(syn::Error::new(
+			data_struct.struct_token.span(),
 			"must use FromBoxError on a enum",
 		)),
 		syn::Data::Enum(data_enum) => match find_target_variant(&data_enum) {
@@ -103,8 +103,8 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>,
 				"specify the variant with #[dyn_error] or a variant with one of these names: ServerError, Generic, DynError",
 			)),
 		},
-		syn::Data::Union(_) => Err(syn::Error::new(
-			ast.span(),
+		syn::Data::Union(data_union) => Err(syn::Error::new(
+			data_union.union_token.span(),
 			"must use FromBoxError on a enum",
 		)),
 	}
