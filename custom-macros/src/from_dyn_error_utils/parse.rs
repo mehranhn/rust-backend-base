@@ -13,7 +13,9 @@ pub struct FromDynErrorParsedAst<'a> {
 }
 
 impl<'a> FromDynErrorParsedAst<'a> {
-	fn new(enum_ident: &'a Ident, variant_ident: &'a Ident, variant: FromDynErrorParsedAstVariant<'a>) -> Self {
+	fn new(
+		enum_ident: &'a Ident, variant_ident: &'a Ident, variant: FromDynErrorParsedAstVariant<'a>,
+	) -> Self {
 		Self {
 			enum_ident,
 			variant_ident,
@@ -27,8 +29,7 @@ fn find_target_variant(data_enum: &DataEnum) -> Option<&Variant> {
 		for attr in variant.attrs.iter() {
 			match &attr.meta {
 				syn::Meta::Path(path) => {
-					if path.segments.len() == 1 && path.segments[0].ident.to_string() == "dyn_error"
-					{
+					if path.segments.len() == 1 && path.segments[0].ident == "dyn_error" {
 						return Some(variant);
 					}
 				},
@@ -54,18 +55,16 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromDynErrorParsedAst<'a>,
 			data_struct.struct_token.span(),
 			"must use FromBoxError on a enum",
 		)),
-		syn::Data::Enum(data_enum) => match find_target_variant(&data_enum) {
+		syn::Data::Enum(data_enum) => match find_target_variant(data_enum) {
 			Some(variant) => match &variant.fields {
 				syn::Fields::Named(fields_named) => {
 					if fields_named.named.len() == 1 {
 						match &fields_named.named[0].ident {
-							Some(ident) => {
-                                Ok(FromDynErrorParsedAst::new(
-                                    &ast.ident,
-                                    &variant.ident,
-                                    FromDynErrorParsedAstVariant::Named(ident),
-                                ))
-                            },
+							Some(ident) => Ok(FromDynErrorParsedAst::new(
+								&ast.ident,
+								&variant.ident,
+								FromDynErrorParsedAstVariant::Named(ident),
+							)),
 							None => Err(syn::Error::new(
 								fields_named.span(),
 								"the enum variant must have only 1 field",

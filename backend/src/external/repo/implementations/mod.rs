@@ -1,1 +1,3 @@
-mod sea_query;
+mod sea_query_postgres;
+
+pub use sea_query_postgres::ExRepoImplSeaQueryPg;

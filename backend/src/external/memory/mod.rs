@@ -1,8 +1,3 @@
-use std::{
-	process::Output,
-	time::{Duration, Instant},
-};
-
 use crate::external::memory::types::ExMTtlValue;
 
 pub mod implementations;

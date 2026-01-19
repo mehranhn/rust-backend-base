@@ -12,6 +12,7 @@ pub struct Generic<'a> {
 	pub variant: GenericVariant,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum CustomErrorVariant {
 	NotFound,
 	Constraint(String),
@@ -81,8 +82,7 @@ fn find_generic_variant(data_enum: &DataEnum) -> Option<&Variant> {
 		for attr in variant.attrs.iter() {
 			match &attr.meta {
 				syn::Meta::Path(path) => {
-					if path.segments.len() == 1 && path.segments[0].ident.to_string() == "dyn_error"
-					{
+					if path.segments.len() == 1 && path.segments[0].ident == "dyn_error" {
 						return Some(variant);
 					}
 				},
@@ -104,39 +104,25 @@ fn find_generic_variant(data_enum: &DataEnum) -> Option<&Variant> {
 
 fn is_boxed_error(field: &Field) -> bool {
 	for attr in field.attrs.iter() {
-		match attr.meta {
-			syn::Meta::Path(ref path) => {
-				if let Some(ident) = path.get_ident() {
-					if ident == "no_boxed" {
-						return false;
-					}
-				}
-			},
-			_ => {},
+		if let syn::Meta::Path(ref path) = attr.meta
+			&& path.is_ident("no_boxed")
+		{
+			return false;
 		};
 	}
 
-	match field.ty {
-		syn::Type::Path(ref type_path) => {
-			if let Some(ident) = type_path.path.get_ident() {
-				if ident == "DynError" {
-					return true;
-				}
-			}
-		},
-		_ => {},
+	if let syn::Type::Path(ref type_path) = field.ty
+		&& type_path.path.is_ident("DynError")
+	{
+		return true;
 	}
 
-	match field.ty {
-		syn::Type::Path(ref type_path) => {
-			if type_path.path.segments.len() == 2
-				&& type_path.path.segments[0].ident == "sqlx"
-				&& type_path.path.segments[1].ident == "Error"
-			{
-				return false;
-			}
-		},
-		_ => {},
+	if let syn::Type::Path(ref type_path) = field.ty
+		&& type_path.path.segments.len() == 2
+		&& type_path.path.segments[0].ident == "sqlx"
+		&& type_path.path.segments[1].ident == "Error"
+	{
+		return false;
 	}
 
 	true

@@ -7,30 +7,45 @@ edition = "2024"
 authors = ["Mehran Hadinezhad"]
 description = "Base packges"
 readme = "./README.md"
-license = "GPLv3"
+license = "MIT"
 
 [workspace.dependencies]
 serde = "1.0.228"
 serde_with = { version = "3.15.1", features = ["time_0_3"] }
+serde-validate = "0.2.0"
 serde_json = "1.0.145"
+ron = "0.12.0"
 thiserror = "2.0.17"
 sqlx = { version = "0.8.6", features = ["derive", "postgres", "time", "runtime-tokio-native-tls", "uuid"] }
 time = { version = "0.3.44", features = ["serde", "serde-human-readable"] }
 uuid = { version = "1.18.1", features = ["serde", "v4", "v7"] }
-tokio = { version = "1.47.2", features = ["full"]}
+tokio = { version = "1.47.2", features = ["full"] }
 tokio-util = "0.7.16"
 futures = "0.3.31"
 utoipa = { version = "5.4.0", features = ["time", "axum_extras", "uuid", "preserve_order", "preserve_path_order"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+utoipa-rapidoc = { version = "6.0.0", features = ["axum"] }
 axum = { version = "0.8.6", features = ["http2", "macros"] }
+axum-extra = { version = "0.12.2", features = ["cookie"] }
+axum-server = { version = "0.8.0", features = ["tls-rustls-no-provider"] }
+tower = "0.5.2"
+tower-http = { version = "0.6.7", features = ["trace", "compression-full"] }
+jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
 dotenvy = "0.15.7"
 itertools = "0.14.0"
-sea-query = { version = "0.32.7", default-features = false, features = ["derive", "backend-postgres", "time"] }
-tracing = "0.1.41"
+sea-query = { version = "1.0.0-rc.22", default-features = false, features = ["derive", "backend-postgres"] }
+sea-query-sqlx = { version = "0.8.0-rc.9", features = [ "sqlx-postgres", "with-chrono", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-async-std-native-tls" ] }
+tracing = "0.1.43"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter", "parking_lot", "time"] }
 custom-macros = { path = "./custom-macros" }
-anyhow = "1.0.100"
-
-# TODO: put it under a feature flag later -> inmemory
+sha2 = "0.10.9"
+base64 = "0.22.1"
+clap = { version = "4.5.53", features = ["derive"] }
+nix = { version = "0.30.1", features = ["socket"] }
 papaya = "0.2.3"
-
-# TODO: -> redis
 redis = { version = "0.32.5", features = ["tokio-rustls-comp", "connection-manager"] }
+indexmap = "2.12.1"
+memory-serve = "1.2.2"
+regex = { version = "1.12.2" }
+validator = "0.20.0"
+heck = "0.5.0"

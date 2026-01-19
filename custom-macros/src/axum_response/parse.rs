@@ -7,7 +7,7 @@ pub enum AxumResponseStatus {
 	Ident(Ident),
 }
 
-impl<'a> Parse for AxumResponseStatus {
+impl Parse for AxumResponseStatus {
 	fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
 		let status_ident = input.parse::<Ident>()?;
 		if status_ident == "status" {
@@ -27,12 +27,7 @@ impl<'a> Parse for AxumResponseStatus {
 							}
 							Ok(Self::Integer(integer))
 						},
-						Err(_) => {
-							Err(syn::Error::new(
-								input.span(),
-								"status should not be string",
-							))
-						},
+						Err(_) => Err(syn::Error::new(input.span(), "status should not be string")),
 					}
 				},
 			};
@@ -60,7 +55,7 @@ impl<'a> Parse for AxumResponseStatus {
 pub struct AxumResponseVariant<'a> {
 	pub variant_name: &'a Ident,
 	pub status: AxumResponseStatus,
-	pub body: Option<&'a Type>,
+	pub body: Option<(&'a Type, bool)>,
 }
 
 #[derive(Debug)]
@@ -71,13 +66,10 @@ pub struct AxumResponseParsedAst<'a> {
 
 fn parse_status(variant: &Variant) -> Result<AxumResponseStatus, syn::Error> {
 	for attr in &variant.attrs {
-		match &attr.meta {
-			syn::Meta::List(meta_list) => {
-				if meta_list.path.is_ident("response") {
-					return meta_list.parse_args::<AxumResponseStatus>();
-				}
-			},
-			_ => {},
+		if let syn::Meta::List(ref meta_list) = attr.meta
+			&& meta_list.path.is_ident("response")
+		{
+			return meta_list.parse_args::<AxumResponseStatus>();
 		}
 	}
 
@@ -98,7 +90,15 @@ fn parse_variant<'a>(variant: &'a Variant) -> Result<AxumResponseVariant<'a>, sy
 		},
 		syn::Fields::Unnamed(fields_unnamed) => {
 			if fields_unnamed.unnamed.len() == 1 {
-				Some(&fields_unnamed.unnamed[0].ty)
+				let mut is_json = false;
+				for attr in &fields_unnamed.unnamed[0].attrs {
+					if attr.path().is_ident("json") {
+						is_json = true;
+						break;
+					}
+				}
+
+				Some((&fields_unnamed.unnamed[0].ty, is_json))
 			} else {
 				return Err(syn::Error::new(
 					fields_unnamed.span(),

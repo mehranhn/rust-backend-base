@@ -1,11 +1,7 @@
-use std::{
-	fmt::Display,
-	sync::atomic::{AtomicI32, AtomicU32},
-	time::{Duration, Instant},
-};
+use std::fmt::Display;
 
 use redis::{
-	AsyncTypedCommands, RedisError, RedisResult,
+	AsyncTypedCommands, RedisError,
 	aio::{ConnectionManager, ConnectionManagerConfig},
 };
 use time::OffsetDateTime;
@@ -74,11 +70,10 @@ impl ExternalMemoryRedis {
 		&self, key: &str, value: String, ttl: ExMTtlValue, variant: KeyVariant,
 	) -> Result<(), ErrExMemorySet> {
 		let final_key = self.final_key(key, variant);
-		let v: String = value.into();
 
 		let mut cmd = redis::cmd("SET");
 		cmd.arg(final_key.as_str());
-		cmd.arg(v);
+		cmd.arg(value);
 
 		match ttl {
 			ExMTtlValue::Duration(d) => {
@@ -116,11 +111,11 @@ impl ExternalMemoryRedis {
 		&self, key: &str, value: String, ttl: ExMTtlValue, variant: KeyVariant,
 	) -> Result<Option<String>, crate::external::memory::errors::ErrExMemoryUpsert> {
 		let final_key = self.final_key(key, variant);
-		let v: String = value.into();
+		let value: String = value;
 
 		let mut cmd = redis::cmd("SET");
 		cmd.arg(final_key.as_str());
-		cmd.arg(v);
+		cmd.arg(value);
 
 		match ttl {
 			ExMTtlValue::Duration(d) => {
@@ -147,7 +142,7 @@ impl ExternalMemoryRedis {
 
 		let result: Option<String> = cmd.query_async(&mut self.manager.clone()).await?;
 
-		Ok(result.map(|v| v.into()))
+		Ok(result)
 	}
 
 	async fn _update_ttl(
@@ -198,7 +193,7 @@ impl ExternalMemoryRedis {
 		&self, keys: &[&str], variant: KeyVariant,
 	) -> Result<usize, ErrExMemoryDelete> {
 		let final_keys = keys
-			.into_iter()
+			.iter()
 			.map(|k| self.final_key(k, variant))
 			.collect::<Vec<_>>();
 
@@ -272,7 +267,7 @@ impl ExternalMemoryBase for ExternalMemoryRedis {
 		let v = self.manager.clone().incr(final_key, value).await?;
 		if let Some(t) = ttl {
 			match self._update_ttl(key, t, KeyVariant::I32).await {
-				Ok(_) => todo!(),
+				Ok(_) => {},
 				Err(e) => match e {
 					ErrExMemoryUpdateTtl::NotFound => {},
 					ErrExMemoryUpdateTtl::ServerError(error) => {

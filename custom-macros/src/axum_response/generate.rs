@@ -10,15 +10,15 @@ pub fn generate<'a>(data: AxumResponseParsedAst<'a>) -> TokenStream {
 	let variants_code = data.variants.into_iter().map(|v| {
 		let status = match v.status {
 			AxumResponseStatus::Integer(s) => {
-				let literal = Literal::u16_unsuffixed(s);
+				let literal = Literal::u16_suffixed(s);
 
 				quote! {
-					*response.status_mut() = unsafe { StatusCode::from_u16(#literal).unwrap_unchecked() };
+					unsafe { axum::http::status::StatusCode::from_u16(#literal).unwrap_unchecked() }
 				}
 			},
 			AxumResponseStatus::Ident(ident) => {
 				quote! {
-					*response.status_mut() = axum::http::status::StatusCode::#ident;
+					axum::http::status::StatusCode::#ident
 				}
 			},
 		};
@@ -26,17 +26,25 @@ pub fn generate<'a>(data: AxumResponseParsedAst<'a>) -> TokenStream {
 		let variant_name = v.variant_name;
 		let variant_param = v.body.map(|_| quote! { (a) });
 		let variant_body = match v.body {
-			Some(_) => {
-				quote! {
-					let mut response = a.into_response();
-					#status
-					response
+			Some((_, is_json)) => {
+				if is_json {
+					quote! {
+						let mut response = axum::Json(a).into_response();
+						*response.status_mut() = #status;
+						response
+					}
+				} else {
+					quote! {
+						let mut response = a.into_response();
+						*response.status_mut() = #status;
+						response
+					}
 				}
 			},
 			None => {
 				quote! {
 					let mut response = axum::response::Response::new(axum::body::Body::empty());
-					#status
+					*response.status_mut() = #status;
 					response
 				}
 			},

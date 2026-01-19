@@ -11,7 +11,7 @@ pub fn generate<'a>(data: FromDynErrorParsedAst<'a>) -> TokenStream {
 			let code = quote! {
 				impl<T: crate::error::ToBoxedError> From<T> for #name {
 					fn from(value: T) -> Self {
-						Self::#variant_name { #ident: Box::new(value) }
+						Self::#variant_name { #ident: value.into_dyn_error() }
 					}
 				}
 			};
@@ -22,7 +22,7 @@ pub fn generate<'a>(data: FromDynErrorParsedAst<'a>) -> TokenStream {
 			let code = quote! {
 				impl<T: crate::error::ToBoxedError> From<T> for #name {
 					fn from(value: T) -> Self {
-						Self::#variant_name(Box::new(value))
+						Self::#variant_name(value.into_dyn_error())
 					}
 				}
 			};

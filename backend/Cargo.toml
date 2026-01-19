@@ -1,5 +1,5 @@
 [package]
-name = "rust-base-backend"
+name = "backend"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
@@ -10,9 +10,10 @@ license.workspace = true
 [dependencies]
 serde = { workspace = true }
 serde_with = { workspace = true }
+serde-validate = { workspace = true }
 serde_json = { workspace = true }
+ron = { workspace = true }
 thiserror = { workspace = true }
-anyhow = { workspace = true }
 sqlx = { workspace = true }
 time = { workspace = true }
 uuid = { workspace = true }
@@ -21,10 +22,35 @@ tokio = { workspace = true }
 tokio-util = { workspace = true }
 futures = { workspace = true }
 utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true, optional = true }
+utoipa-rapidoc = { workspace = true, optional = true }
 axum = { workspace = true }
+axum-extra = { workspace = true }
+axum-server = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+jsonwebtoken = { workspace = true }
 dotenvy = { workspace = true }
 itertools = { workspace = true }
 sea-query = { workspace = true }
+sea-query-sqlx = { workspace = true }
 tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 papaya = { workspace = true }
 redis = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+clap = { workspace = true }
+memory-serve = { workspace = true, optional = true }
+indexmap = { workspace = true, optional = true }
+regex = { workspace = true }
+validator = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true }
+
+[features]
+default = ["swagger", "develop"]
+develop = []
+swagger = ["dep:utoipa-swagger-ui", "dep:utoipa-rapidoc", "dep:indexmap"]
+embed-web-ui = ["dep:memory-serve"]

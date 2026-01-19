@@ -1,16 +1,15 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
+#![allow(clippy::manual_range_contains)]
+#![allow(clippy::from_over_into)]
+#![allow(clippy::wrong_self_convention)]
 
-use axum::response::IntoResponse;
-use axum::http::status::StatusCode;
-
-use crate::error::DynError;
-
-mod api;
-mod config;
-mod constants;
-mod dtos;
-mod error;
-mod external;
-mod modules;
-mod utils;
+pub mod api;
+pub mod app;
+pub mod config;
+pub mod constants;
+pub mod dtos;
+pub mod error;
+pub mod external;
+pub mod permission;
+pub mod prelude;
+pub mod utils;
+pub mod validators;

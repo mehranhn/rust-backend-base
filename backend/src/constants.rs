@@ -1,1 +1,1 @@
-pub const MAX_PAGINATION_SIZE: u32 = 100;
+pub const MAX_PAGINATION_SIZE: u64 = 100;

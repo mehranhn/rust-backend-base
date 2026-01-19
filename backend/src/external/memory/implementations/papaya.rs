@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::{
 	future::ready,
 	sync::atomic::{AtomicI32, AtomicU64, Ordering},
@@ -6,7 +8,6 @@ use std::{
 
 use futures::FutureExt;
 use papaya::HashMap;
-use time::OffsetDateTime;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
@@ -30,7 +31,7 @@ impl<T: Send + Sync + 'static> WithTtl<T> {
 
 		Self {
 			ttl: AtomicU64::new(t),
-			data: data,
+			data,
 		}
 	}
 
@@ -52,7 +53,7 @@ impl<T: Send + Sync + 'static> WithTtl<T> {
 			false
 		} else {
 			let now = time::OffsetDateTime::now_utc().unix_timestamp() as u64;
-			if now < ttl { false } else { true }
+			now >= ttl
 		}
 	}
 
@@ -92,7 +93,7 @@ impl ExternalMemoryPapaya {
 	pub fn run_background_cleaner(
 		&'static self, interval: Duration, cancellation_token: CancellationToken,
 	) -> JoinHandle<()> {
-		let handle = tokio::spawn(async move {
+		tokio::spawn(async move {
 			loop {
 				futures::select! {
 					_ = cancellation_token.cancelled().fuse() => {
@@ -100,13 +101,11 @@ impl ExternalMemoryPapaya {
 					}
 
 					_ = tokio::time::sleep(interval).fuse() => {
-					    self.remove_expired();
+						self.remove_expired();
 					}
 				}
 			}
-		});
-
-		handle
+		})
 	}
 }
 
@@ -171,9 +170,8 @@ impl ExternalMemoryBase for ExternalMemoryPapaya {
 		let mut sum: usize = 0;
 		let pin = self.str_map.pin();
 		for key in keys {
-			match pin.remove(*key) {
-				Some(_) => sum += 1,
-				None => {},
+			if pin.remove(*key).is_some() {
+				sum += 1
 			}
 		}
 
@@ -259,9 +257,8 @@ impl ExternalMemoryBase for ExternalMemoryPapaya {
 
 		let pin = self.i32_map.pin();
 		for key in keys {
-			match pin.remove(*key) {
-				Some(_) => sum += 1,
-				None => {},
+			if pin.remove(*key).is_some() {
+				sum += 1
 			}
 		}
 
