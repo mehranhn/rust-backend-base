@@ -1,4 +1,5 @@
 use sea_query::{OnConflict, PostgresQueryBuilder, Query};
+use sea_query_pg_migrations::SEA_QUERY_PG_MIGRATOR;
 use sea_query_sqlx::SqlxBinder;
 use sqlx::PgPool;
 
@@ -22,8 +23,6 @@ mod helpers;
 mod models;
 mod types;
 mod utils;
-
-static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./src/external/repo/implementations/sea_query_postgres/migrations");
 
 pub struct ExRepoImplSeaQueryPg {
 	pool: PgPool,
@@ -51,7 +50,7 @@ impl ExRepo for ExRepoImplSeaQueryPg {
 	}
 
 	async fn run_migrations(&self) -> Result<(), ErrServerError> {
-		MIGRATOR.run(&self.pool).await?;
+		SEA_QUERY_PG_MIGRATOR.run(&self.pool).await?;
 		Ok(())
 	}
 

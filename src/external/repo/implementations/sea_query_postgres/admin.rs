@@ -5,19 +5,22 @@ use sea_query_sqlx::SqlxBinder;
 use uuid::Uuid;
 
 use crate::{
+	app::errors::ErrServerError,
 	dtos::{
-		AdminCreateDto, AdminDto, AdminDtoSortColumns, AdminUpdateDto, NullUndefinedValue, PaginatedResult, PaginationFilterWithSearchOrder
+		AdminCreateDto, AdminDto, AdminDtoSortColumns, AdminUpdateDto, NullUndefinedValue,
+		PaginatedResult, PaginationFilterWithSearchOrder,
 	},
 	external::repo::{
+		ExRepoAdmin,
 		errors::{
 			ErrExRepoAdminCreate, ErrExRepoAdminDelete, ErrExRepoAdminGetById, ErrExRepoAdminUpdate,
-		}, implementations::sea_query_postgres::{
+		},
+		implementations::sea_query_postgres::{
 			helpers::CountHelper,
 			models::{User, UserIden},
 			types::Roles,
-		}, ExRepoAdmin
+		},
 	},
-	app::errors::ErrServerError,
 };
 
 use super::utils::ExRepoImplSeaQueryHandle;
@@ -82,18 +85,16 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 				UserIden::Role,
 				UserIden::Username,
 				UserIden::HashedPassword,
-				UserIden::TestAccountExpInDays,
-				UserIden::TestAccountRxTxLimit,
-				UserIden::DeleteInactiveCustomersAfterDays,
+				UserIden::Phone,
+				UserIden::Email,
 			])
 			.values([
 				id.into(),
 				Roles::Admin.into(),
 				dto.username.into_inner().into(),
 				dto.password.into(),
-				dto.test_account_exp_in_days.into(),
-				dto.test_account_rx_tx_limit.into(),
-				dto.delete_inactive_customers_after_days.into(),
+				dto.phone.map(|p| p.into_inner()).into(),
+				dto.email.map(|e| e.into_inner()).into(),
 			])?
 			.build_sqlx(PostgresQueryBuilder);
 
@@ -117,26 +118,25 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			q.value(UserIden::Username, v);
 		}
 
-		if let Some(v) = dto.test_account_exp_in_days {
-			q.value(UserIden::TestAccountExpInDays, v);
-		}
-
-		if let Some(v) = dto.test_account_rx_tx_limit {
-			q.value(UserIden::TestAccountRxTxLimit, v);
-		}
-
-		match dto.delete_inactive_customers_after_days {
+		match dto.phone {
 			NullUndefinedValue::Some(v) => {
-				q.value(UserIden::DeleteInactiveCustomersAfterDays, v);
+				q.value(UserIden::Phone, v.into_inner());
 			},
 			NullUndefinedValue::Null => {
-				q.value(
-					UserIden::DeleteInactiveCustomersAfterDays,
-					Option::<i64>::None,
-				);
+				q.value(UserIden::Phone, Option::<String>::None);
 			},
 			NullUndefinedValue::Undefined => {},
-		};
+		}
+
+		match dto.email {
+			NullUndefinedValue::Some(v) => {
+				q.value(UserIden::Email, v.into_inner());
+			},
+			NullUndefinedValue::Null => {
+				q.value(UserIden::Email, Option::<String>::None);
+			},
+			NullUndefinedValue::Undefined => {},
+		}
 
 		let (sql, values) = q.build_sqlx(PostgresQueryBuilder);
 

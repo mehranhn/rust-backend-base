@@ -1,4 +1,4 @@
-use backend::{
+use rust_backend_base::{
 	dtos::SeedDto,
 	external::repo::{ExRepo, implementations::ExRepoImplSeaQueryPg},
 	app::App,
@@ -57,10 +57,10 @@ async fn run() {
 		Commands::Run {
 			config: config_path,
 		} => {
-			let config = backend::config::read_config(config_path).await.unwrap();
+			let config = rust_backend_base::config::read_config(config_path).await.unwrap();
 			tracing_subscriber::registry()
 				.with(tracing_subscriber::EnvFilter::new(format!(
-					"sqlx={0},tower_http={0},backend={0}",
+					"sqlx={0},tower_http={0},rust_backend_base={0}",
 					config.log_level.as_ref()
 				)))
 				.with(tracing_subscriber::fmt::layer())
@@ -85,7 +85,7 @@ async fn run() {
 				terminate_on_intrupt(ct).await;
 			});
 
-			backend::api::start(app, config.api).await.unwrap();
+			rust_backend_base::api::start(app, config.api).await.unwrap();
 		},
 		Commands::HashPassword(h) => match h {
 			HashPasswordCommands::Sha256(p) => {

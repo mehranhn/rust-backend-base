@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["backend", "custom-macros"]
+members = [".", "custom-macros", "sea-orm-pg-migrations", "sea-query-pg-migrations"]
 
 [workspace.package]
 edition = "2024"
@@ -33,19 +33,81 @@ tower-http = { version = "0.6.7", features = ["trace", "compression-full"] }
 jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
 dotenvy = "0.15.7"
 itertools = "0.14.0"
+sea-query-pg-migrations = { path = "./sea-query-pg-migrations" }
+sea-orm-pg-migrations = { path = "./sea-orm-pg-migrations" }
 sea-query = { version = "1.0.0-rc.22", default-features = false, features = ["derive", "backend-postgres"] }
-sea-query-sqlx = { version = "0.8.0-rc.9", features = [ "sqlx-postgres", "with-chrono", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-async-std-native-tls" ] }
+sea-query-sqlx = { version = "0.8.0-rc.14", features = [ "sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls" ] }
+sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls"] }
 tracing = "0.1.43"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "parking_lot", "time"] }
 custom-macros = { path = "./custom-macros" }
-sha2 = "0.10.9"
+sha2 = "0.11.0"
 base64 = "0.22.1"
 clap = { version = "4.5.53", features = ["derive"] }
-nix = { version = "0.30.1", features = ["socket"] }
+nix = { version = "0.31.2", features = ["socket"] }
 papaya = "0.2.3"
-redis = { version = "0.32.5", features = ["tokio-rustls-comp", "connection-manager"] }
+redis = { version = "0.32.7", features = ["tokio-rustls-comp", "connection-manager"] }
 indexmap = "2.12.1"
 memory-serve = "1.2.2"
 regex = { version = "1.12.2" }
 validator = "0.20.0"
 heck = "0.5.0"
+
+[package]
+name = "rust-backend-base"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_with = { workspace = true }
+serde-validate = { workspace = true }
+serde_json = { workspace = true }
+ron = { workspace = true }
+thiserror = { workspace = true }
+sqlx = { workspace = true }
+time = { workspace = true }
+uuid = { workspace = true }
+custom-macros = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true, optional = true }
+utoipa-rapidoc = { workspace = true, optional = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+axum-server = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+jsonwebtoken = { workspace = true }
+dotenvy = { workspace = true }
+itertools = { workspace = true }
+sea-query-pg-migrations = { workspace = true }
+sea-query = { workspace = true }
+sea-query-sqlx = { workspace = true }
+sea-orm = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+papaya = { workspace = true }
+redis = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+clap = { workspace = true }
+memory-serve = { workspace = true, optional = true }
+indexmap = { workspace = true, optional = true }
+regex = { workspace = true }
+validator = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true }
+
+[features]
+default = ["swagger", "develop"]
+develop = []
+swagger = ["dep:utoipa-swagger-ui", "dep:utoipa-rapidoc", "dep:indexmap"]
+embed-web-ui = ["dep:memory-serve"]

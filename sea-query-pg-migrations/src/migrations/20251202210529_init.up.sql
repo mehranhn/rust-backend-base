@@ -8,9 +8,8 @@ CREATE TABLE IF NOT EXISTS users(
     role roles NOT NULL,
     username varchar(255) NOT NULL UNIQUE,
     hashed_password bytea NOT NULL,
-    test_account_exp_in_days bigint NOT NULL DEFAULT 1,
-    test_account_rx_tx_limit bigint NOT NULL DEFAULT 1000000,
-	delete_inactive_customers_after_days bigint
+    phone varchar(21),
+    email varchar(255),
 );
 
 CREATE TABLE IF NOT EXISTS sessions(

@@ -20,7 +20,6 @@ pub struct AdminDto {
 
 	pub deleted_at: Option<OffsetDateTime>,
 	pub username: String,
-	pub test_account_exp_in_days: u64,
-	pub test_account_rx_tx_limit: u64,
-	pub delete_inactive_customers_after_days: Option<u64>,
+	pub phone: Option<String>,
+	pub email: Option<String>,
 }
