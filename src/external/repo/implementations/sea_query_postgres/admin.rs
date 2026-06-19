@@ -2,6 +2,7 @@ use std::marker::Send;
 
 use sea_query::{Asterisk, Expr, ExprTrait, Func, PostgresQueryBuilder, Query};
 use sea_query_sqlx::SqlxBinder;
+use sqlx::{AssertSqlSafe, SqlSafeStr};
 use uuid::Uuid;
 
 use crate::{
@@ -41,7 +42,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			.limit(filter.take())
 			.build_sqlx(PostgresQueryBuilder);
 
-		let data_res = sqlx::query_as_with::<_, User, _>(&sql, values)
+		let data_res = sqlx::query_as_with::<_, User, _>(AssertSqlSafe(sql).into_sql_str(), values)
 			.fetch_all(self.raw_connection())
 			.await?;
 
@@ -49,9 +50,10 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			.expr(Func::count(Expr::col(UserIden::Id)))
 			.build_sqlx(PostgresQueryBuilder);
 
-		let count_res = sqlx::query_as_with::<_, CountHelper, _>(&sql, values)
-			.fetch_one(self.raw_connection())
-			.await?;
+		let count_res =
+			sqlx::query_as_with::<_, CountHelper, _>(AssertSqlSafe(sql).into_sql_str(), values)
+				.fetch_one(self.raw_connection())
+				.await?;
 
 		Ok(PaginatedResult::new(
 			data_res.into_iter().map(|r| r.into()).collect(),
@@ -68,7 +70,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		let res = sqlx::query_as_with::<_, User, _>(&sql, values)
+		let res = sqlx::query_as_with::<_, User, _>(AssertSqlSafe(sql).into_sql_str(), values)
 			.fetch_one(self.raw_connection())
 			.await?;
 
@@ -98,7 +100,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			])?
 			.build_sqlx(PostgresQueryBuilder);
 
-		sqlx::query_with(&sql, values)
+		sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 
@@ -140,7 +142,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 
 		let (sql, values) = q.build_sqlx(PostgresQueryBuilder);
 
-		let res = sqlx::query_with(&sql, values)
+		let res = sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 
@@ -159,7 +161,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		let res = sqlx::query_with(&sql, values)
+		let res = sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 

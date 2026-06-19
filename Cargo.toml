@@ -11,45 +11,45 @@ license = "MIT"
 
 [workspace.dependencies]
 serde = "1.0.228"
-serde_with = { version = "3.15.1", features = ["time_0_3"] }
+serde_with = { version = "3.21.0", features = ["time_0_3"] }
 serde-validate = "0.2.0"
-serde_json = "1.0.145"
-ron = "0.12.0"
-thiserror = "2.0.17"
-sqlx = { version = "0.8.6", features = ["derive", "postgres", "time", "runtime-tokio-native-tls", "uuid"] }
-time = { version = "0.3.44", features = ["serde", "serde-human-readable"] }
-uuid = { version = "1.18.1", features = ["serde", "v4", "v7"] }
-tokio = { version = "1.47.2", features = ["full"] }
-tokio-util = "0.7.16"
-futures = "0.3.31"
-utoipa = { version = "5.4.0", features = ["time", "axum_extras", "uuid", "preserve_order", "preserve_path_order"] }
+serde_json = "1.0.150"
+ron = "0.12.1"
+thiserror = "2.0.18"
+sqlx = { version = "0.9.0", features = ["derive", "postgres", "time", "runtime-tokio", "tls-native-tls", "uuid"] }
+time = { version = "0.3.49", features = ["serde", "serde-human-readable"] }
+uuid = { version = "1.23.3", features = ["serde", "v4", "v7"] }
+tokio = { version = "1.52.3", features = ["full"] }
+tokio-util = "0.7.18"
+futures = "0.3.32"
+utoipa = { version = "5.5.0", features = ["time", "axum_extras", "uuid", "preserve_order", "preserve_path_order"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 utoipa-rapidoc = { version = "6.0.0", features = ["axum"] }
-axum = { version = "0.8.6", features = ["http2", "macros"] }
-axum-extra = { version = "0.12.2", features = ["cookie"] }
+axum = { version = "0.8.9", features = ["http2", "macros"] }
+axum-extra = { version = "0.12.6", features = ["cookie"] }
 axum-server = { version = "0.8.0", features = ["tls-rustls-no-provider"] }
-tower = "0.5.2"
-tower-http = { version = "0.6.7", features = ["trace", "compression-full"] }
-jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
+tower = "0.5.3"
+tower-http = { version = "0.7.0", features = ["trace", "compression-full"] }
+jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }
 dotenvy = "0.15.7"
-itertools = "0.14.0"
+itertools = "0.15.0"
 sea-query-pg-migrations = { path = "./sea-query-pg-migrations" }
 sea-orm-pg-migrations = { path = "./sea-orm-pg-migrations" }
 sea-query = { version = "1.0.0-rc.22", default-features = false, features = ["derive", "backend-postgres"] }
-sea-query-sqlx = { version = "0.8.0-rc.14", features = [ "sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls" ] }
+sea-query-sqlx = { version = "0.9.1", features = [ "sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls" ] }
 sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls"] }
-tracing = "0.1.43"
-tracing-subscriber = { version = "0.3.22", features = ["env-filter", "parking_lot", "time"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "parking_lot", "time"] }
 custom-macros = { path = "./custom-macros" }
 sha2 = "0.11.0"
 base64 = "0.22.1"
-clap = { version = "4.5.53", features = ["derive"] }
-nix = { version = "0.31.2", features = ["socket"] }
-papaya = "0.2.3"
-redis = { version = "0.32.7", features = ["tokio-rustls-comp", "connection-manager"] }
+clap = { version = "4.6.1", features = ["derive"] }
+nix = { version = "0.31.3", features = ["socket"] }
+papaya = "0.2.4"
+redis = { version = "1.2.4", features = ["tokio-rustls-comp", "connection-manager"] }
 indexmap = "2.12.1"
-memory-serve = "1.2.2"
-regex = { version = "1.12.2" }
+memory-serve = "2.1.0"
+regex = { version = "1.12.4" }
 validator = "0.20.0"
 heck = "0.5.0"
 

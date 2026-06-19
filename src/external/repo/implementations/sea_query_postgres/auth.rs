@@ -2,7 +2,7 @@ use std::marker::Send;
 
 use sea_query::{Asterisk, Expr, ExprTrait, PostgresQueryBuilder, Query};
 use sea_query_sqlx::SqlxBinder;
-use sqlx::FromRow;
+use sqlx::{AssertSqlSafe, FromRow, SqlSafeStr};
 use time::{OffsetDateTime, PrimitiveDateTime};
 use uuid::Uuid;
 
@@ -32,7 +32,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		let res = sqlx::query_as_with::<_, User, _>(&sql, values)
+		let res = sqlx::query_as_with::<_, User, _>(AssertSqlSafe(sql).into_sql_str(), values)
 			.fetch_one(self.raw_connection())
 			.await?;
 
@@ -70,7 +70,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.and_where(Expr::col((SessionIden::Table, SessionIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		let res = sqlx::query_as_with::<_, Tmp, _>(&sql, values)
+		let res = sqlx::query_as_with::<_, Tmp, _>(AssertSqlSafe(sql).into_sql_str(), values)
 			.fetch_one(self.raw_connection())
 			.await?;
 
@@ -93,7 +93,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.values([session_id.into(), user_id.into(), exp.into()])?
 			.build_sqlx(PostgresQueryBuilder);
 
-		sqlx::query_with(&sql, values)
+		sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 
@@ -108,7 +108,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.and_where(Expr::col((SessionIden::Table, SessionIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		sqlx::query_with(&sql, values)
+		sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 
@@ -123,7 +123,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.and_where(Expr::col((SessionIden::Table, SessionIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
-		sqlx::query_with(&sql, values)
+		sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
 			.execute(self.raw_connection())
 			.await?;
 

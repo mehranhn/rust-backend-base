@@ -1,9 +1,10 @@
 use sea_query::{OnConflict, PostgresQueryBuilder, Query};
 use sea_query_pg_migrations::SEA_QUERY_PG_MIGRATOR;
 use sea_query_sqlx::SqlxBinder;
-use sqlx::PgPool;
+use sqlx::{AssertSqlSafe, PgPool, SqlSafeStr};
 
 use crate::{
+	app::errors::ErrServerError,
 	dtos::SeedDto,
 	external::repo::{
 		ExRepo,
@@ -13,7 +14,6 @@ use crate::{
 			utils::{ExRepoImplSeaQueryPgConnection, ExRepoImplSeaQueryPgTx},
 		},
 	},
-	app::errors::ErrServerError,
 	utils::generate_uuid,
 };
 
@@ -76,7 +76,9 @@ impl ExRepo for ExRepoImplSeaQueryPg {
 			)
 			.build_sqlx(PostgresQueryBuilder);
 
-		sqlx::query_with(&sql, values).execute(&self.pool).await?;
+		sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)
+			.execute(&self.pool)
+			.await?;
 
 		Ok(())
 	}
