@@ -5,7 +5,7 @@ members = [".", "custom-macros", "sea-orm-migrations", "sea-query-pg-migrations"
 [workspace.package]
 edition = "2024"
 authors = ["Mehran Hadinezhad"]
-description = "Backend Base. an example of implementing a CRUD in rust."
+description = "Backend Base. an example of implementing a CRUD."
 readme = "./README.md"
 license = "MIT"
 
