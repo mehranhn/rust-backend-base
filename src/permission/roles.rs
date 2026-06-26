@@ -1,13 +1,4 @@
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
-
-use crate::permission::Permissions;
-
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, Copy, ToSchema)]
-pub enum Roles {
-	Admin,
-	Salesmen,
-}
+use crate::{enums::Roles, permission::Permissions};
 
 impl Roles {
 	pub const fn has_permission(&self, permission: Permissions) -> bool {
@@ -19,7 +10,7 @@ impl Roles {
 					| Permissions::AdminUpdate
 					| Permissions::AdminDelete
 			),
-			Roles::Salesmen => false,
+			Roles::User => false,
 		}
 	}
 

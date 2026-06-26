@@ -1,7 +1,5 @@
 mod roles;
 
-pub use roles::Roles;
-
 use custom_macros::GeneratePermissions;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;

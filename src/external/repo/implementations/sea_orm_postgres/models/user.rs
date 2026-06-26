@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use time::OffsetDateTime;
 
-use super::super::types::roles::Roles;
+use crate::{dtos::AdminDto, external::repo::implementations::sea_orm_postgres::types::roles::Roles};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -16,9 +16,10 @@ pub struct Model {
 	#[sea_orm(default_value = "CURRENT_TIMESTAMP")]
 	pub updated_at: OffsetDateTime,
 
+	#[sea_orm(unique, column_type = "Integer")]
 	pub role: Roles,
 
-	#[sea_orm(column_type = "String(StringLen::N(255))")]
+	#[sea_orm(unique, column_type = "String(StringLen::N(255))")]
 	pub username: String,
 
 	#[sea_orm(default_value = "Blob")]
@@ -30,14 +31,26 @@ pub struct Model {
 	#[sea_orm(column_type = "String(StringLen::N(255))")]
 	pub email: Option<String>,
 
-    #[sea_orm(has_many)]
+	#[sea_orm(has_many)]
 	pub sessions: HasMany<super::session::Entity>,
 
-    #[sea_orm(has_many)]
+	#[sea_orm(has_many)]
 	pub posts: HasMany<super::post::Entity>,
 
-    #[sea_orm(has_many)]
+	#[sea_orm(has_many)]
 	pub comments: HasMany<super::comment::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Into<AdminDto> for Model {
+	fn into(self) -> AdminDto {
+		AdminDto {
+			id: self.id,
+			created_at: self.created_at,
+			username: self.username,
+			phone: self.phone,
+			email: self.email,
+		}
+	}
+}

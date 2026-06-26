@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::permission::Roles;
+use crate::enums::Roles;
 
 #[derive(Debug, Clone)]
 pub struct UserLoginDto {

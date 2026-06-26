@@ -3,7 +3,10 @@ use thiserror::Error;
 
 use crate::{
 	error::DynError,
-	external::repo::errors::{ErrExRepoAuthRenewSession, ErrExRepoUserGetUserByUsername},
+	external::{
+		memory::errors::ErrExMemoryUpsert,
+		repo::errors::{ErrExRepoAuthRenewSession, ErrExRepoUserGetUserByUsername},
+	},
 };
 
 #[derive(Debug, Error, FromBoxError)]
@@ -18,10 +21,19 @@ pub enum ErrSvRenewSession {
 #[derive(Debug, Error, FromBoxError)]
 pub enum ErrSvAuthLogin {
 	#[error("Not Found")]
-    IncorrectPassword,
+	IncorrectPassword,
 
 	#[error(transparent)]
 	RepoError(#[from] ErrExRepoUserGetUserByUsername),
+
+	#[error(transparent)]
+	ServerError(#[from] DynError),
+}
+
+#[derive(Debug, Error, FromBoxError)]
+pub enum ErrSvAuthLogout {
+	#[error(transparent)]
+	MemoError(#[from] ErrExMemoryUpsert),
 
 	#[error(transparent)]
 	ServerError(#[from] DynError),

@@ -3,10 +3,13 @@ use utoipa::IntoResponses;
 
 use crate::{
 	api::{extractors::Authenticated, responses::RespServerErrorLogged, state::AxumState},
-	dtos::AdminCreateDto,
-	external::repo::{ExRepo, errors::ErrExRepoAdminCreate},
-	permission::PermAdminCreate,
 	app::errors::ErrSvAdminCreate,
+	dtos::AdminCreateDto,
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, errors::ErrExRepoAdminCreate},
+	},
+	permission::PermAdminCreate,
 	validators::StringVPassword,
 };
 
@@ -32,8 +35,8 @@ pub enum Res {
         ("bearerAuth" = ["AdminCreate"])
     ),
 )]
-pub async fn admin_create<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, _: Authenticated<PermAdminCreate>,
+pub async fn admin_create<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, _: Authenticated<PermAdminCreate>,
 	Json(data): Json<AdminCreateDto<StringVPassword>>,
 ) -> Res {
 	match s.app.admin_create(data).await {

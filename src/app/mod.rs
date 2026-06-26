@@ -1,4 +1,15 @@
-use crate::{dtos::SeedDto, external::repo::ExRepo, app::errors::ErrServerError};
+use crate::{
+	app::errors::ErrServerError,
+	dtos::SeedDto,
+	external::{
+		memory::{
+			ExMemory,
+			errors::{ErrExMemoryGet, ErrExMemoryUpsert},
+			types::ExMTtlValue,
+		},
+		repo::ExRepo,
+	},
+};
 
 mod admin;
 mod auth;
@@ -21,6 +32,12 @@ pub mod errors {
 
 	impl From<sqlx::Error> for ErrServerError {
 		fn from(value: sqlx::Error) -> Self {
+			Self(Box::new(value))
+		}
+	}
+
+	impl From<sea_orm::DbErr> for ErrServerError {
+		fn from(value: sea_orm::DbErr) -> Self {
 			Self(Box::new(value))
 		}
 	}
@@ -51,6 +68,8 @@ mod config {
 	use serde::Deserialize;
 	use serde_with::serde_as;
 
+	use crate::utils::hash_password;
+
 	#[derive(Debug, Clone, Deserialize)]
 	#[serde_as]
 	pub struct AppConfig {
@@ -78,16 +97,13 @@ mod config {
 		}
 
 		pub fn default_super_admin_hashed_password() -> [u8; 32] {
-			// admin
-			[
-				0xd8, 0x24, 0x94, 0xf0, 0x5d, 0x69, 0x17, 0xba, 0x02, 0xf7, 0xaa, 0xa2, 0x96, 0x89,
-				0xcc, 0xb4, 0x44, 0xbb, 0x73, 0xf2, 0x03, 0x80, 0x87, 0x6c, 0xb0, 0x5d, 0x1f, 0x37,
-				0x53, 0x7b, 0x78, 0x92,
-			]
+			hash_password(Self::default_super_admin_username().as_str(), "admin")
+				.try_into()
+				.unwrap()
 		}
 
 		pub fn default_jwt_exp_after() -> time::Duration {
-			time::Duration::minutes(300)
+			time::Duration::minutes(15)
 		}
 
 		pub fn default_session_exp_after() -> time::Duration {
@@ -98,38 +114,75 @@ mod config {
 
 pub use config::AppConfig;
 use tokio_util::sync::CancellationToken;
+use uuid::Uuid;
 
-pub struct App<D: ExRepo> {
+pub struct App<D: ExRepo, M: ExMemory> {
 	config: AppConfig,
 	shutdown_token: CancellationToken,
 	repo: D,
+	memory: M,
 }
 
-impl<D: ExRepo> App<D> {
-	pub fn new(config: AppConfig, shutdown_token: CancellationToken, repo: D) -> Self {
+impl<D: ExRepo, M: ExMemory> App<D, M> {
+	pub fn new(config: AppConfig, shutdown_token: CancellationToken, repo: D, memory: M) -> Self {
 		Self {
 			config,
-			repo,
 			shutdown_token,
+			repo,
+			memory,
 		}
 	}
 
-	pub async fn init(&self) -> Result<(), ErrServerError> {
+	pub async fn init(&'static self) -> Result<(), ErrServerError> {
 		self.repo.run_migrations().await?;
-		self.repo.seed(SeedDto {
-			super_admin_username: &self.config.super_admin_username,
-			super_admin_hashed_password: &self.config.super_admin_hashed_password,
-		})
-		.await?;
+		self.repo
+			.seed(SeedDto {
+				super_admin_username: self.config.super_admin_username.clone(),
+				super_admin_hashed_password: self.config.super_admin_hashed_password.to_vec(),
+			})
+			.await?;
+
+		self.memory
+			.run_background_workers(self.config(), self.shutdown_token.clone());
 
 		Ok(())
 	}
 
-    pub fn shutdown_token(&self) -> CancellationToken {
-        self.shutdown_token.clone()
-    }
+	pub fn shutdown_token(&self) -> CancellationToken {
+		self.shutdown_token.clone()
+	}
 
 	pub fn config(&self) -> &AppConfig {
 		&self.config
+	}
+
+	pub async fn session_blacklist_is_blacklist(
+		&self, session_id: Uuid,
+	) -> Result<bool, ErrServerError> {
+		match self
+			.memory
+			.get(format!("session_blacklist_{session_id}").as_str())
+			.await
+		{
+			Ok(_) => Ok(true),
+			Err(e) => match e {
+				ErrExMemoryGet::NotFound => Ok(false),
+				ErrExMemoryGet::ServerError(e) => Err(ErrServerError(e)),
+			},
+		}
+	}
+
+	pub async fn session_blacklist_blacklist(
+		&self, session_id: Uuid,
+	) -> Result<(), ErrExMemoryUpsert> {
+		self.memory
+			.upsert(
+				format!("session_blacklist_{session_id}").as_str(),
+				String::from("1"),
+				ExMTtlValue::Duration(self.config.jwt_exp_after),
+			)
+			.await?;
+
+		Ok(())
 	}
 }

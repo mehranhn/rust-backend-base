@@ -4,7 +4,7 @@ use utoipa::IntoResponses;
 use crate::{
 	api::{extractors::Authenticated, responses::RespServerErrorLogged, state::AxumState},
 	dtos::{AdminDto, AdminDtoSortColumns, PaginatedResult, PaginationFilterWithSearchOrder},
-	external::repo::ExRepo,
+	external::{memory::ExMemory, repo::ExRepo},
 	permission::PermAdminRead,
 };
 
@@ -28,8 +28,8 @@ pub enum Res {
         ("bearerAuth" = ["AdminRead"])
     ),
 )]
-pub async fn admin_get_list<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, _: Authenticated<PermAdminRead>,
+pub async fn admin_get_list<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, _: Authenticated<PermAdminRead>,
 	Query(filter): Query<PaginationFilterWithSearchOrder<AdminDtoSortColumns>>,
 ) -> Res {
 	match s.app.admin_get_list(filter).await {

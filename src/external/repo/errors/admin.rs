@@ -1,9 +1,9 @@
-use custom_macros::{FromBoxError, FromSqlxError};
+use custom_macros::{FromBoxError, FromSqlError};
 use thiserror::Error;
 
 use crate::error::DynError;
 
-#[derive(Debug, Error, FromBoxError, FromSqlxError)]
+#[derive(Debug, Error, FromBoxError, FromSqlError)]
 pub enum ErrExRepoAdminGetById {
 	#[error("Not Found")]
 	#[esqlx(not_found)]
@@ -13,7 +13,7 @@ pub enum ErrExRepoAdminGetById {
 	ServerError(#[from] DynError),
 }
 
-#[derive(Debug, Error, FromBoxError, FromSqlxError)]
+#[derive(Debug, Error, FromBoxError, FromSqlError)]
 pub enum ErrExRepoAdminCreate {
 	#[error("This username already exists")]
 	#[esqlx(constraint = "IDX_USERNAME")]
@@ -23,7 +23,7 @@ pub enum ErrExRepoAdminCreate {
 	ServerError(#[from] DynError),
 }
 
-#[derive(Debug, Error, FromBoxError, FromSqlxError)]
+#[derive(Debug, Error, FromBoxError, FromSqlError)]
 pub enum ErrExRepoAdminUpdate {
 	#[error("Not Found")]
 	NotFound,
@@ -32,7 +32,7 @@ pub enum ErrExRepoAdminUpdate {
 	ServerError(#[from] DynError),
 }
 
-#[derive(Debug, Error, FromBoxError, FromSqlxError)]
+#[derive(Debug, Error, FromBoxError, FromSqlError)]
 pub enum ErrExRepoAdminDelete {
 	#[error("Not Found")]
 	NotFound,

@@ -2,6 +2,7 @@ mod hash_password;
 mod jwt;
 
 pub use hash_password::hash_password;
+pub use hash_password::check_password;
 pub use jwt::*;
 
 use uuid::Uuid;

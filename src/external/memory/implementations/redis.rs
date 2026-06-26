@@ -5,14 +5,18 @@ use redis::{
 	aio::{ConnectionManager, ConnectionManagerConfig},
 };
 use time::OffsetDateTime;
+use tokio_util::sync::CancellationToken;
 
-use crate::external::memory::{
-	ExternalMemoryBase,
-	errors::{
-		ErrExMemoryDelete, ErrExMemoryFetchAddOrSet, ErrExMemoryGet, ErrExMemorySet,
-		ErrExMemoryUpdateTtl, ErrExMemoryUpsert,
+use crate::{
+	app::AppConfig,
+	external::memory::{
+		ExMemory, ExMemoryBase,
+		errors::{
+			ErrExMemoryDelete, ErrExMemoryFetchAddOrSet, ErrExMemoryGet, ErrExMemorySet,
+			ErrExMemoryUpdateTtl, ErrExMemoryUpsert,
+		},
+		types::ExMTtlValue,
 	},
-	types::ExMTtlValue,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -30,12 +34,12 @@ impl Display for KeyVariant {
 	}
 }
 
-pub struct ExternalMemoryRedis {
+pub struct ExMemoryRedis {
 	manager: ConnectionManager,
 	key_prefix: Option<String>,
 }
 
-impl ExternalMemoryRedis {
+impl ExMemoryRedis {
 	pub async fn new(connection_url: &str, key_prefix: Option<String>) -> Result<Self, RedisError> {
 		Ok(Self {
 			manager: ConnectionManager::new_with_config(
@@ -203,7 +207,7 @@ impl ExternalMemoryRedis {
 	}
 }
 
-impl ExternalMemoryBase for ExternalMemoryRedis {
+impl ExMemoryBase for ExMemoryRedis {
 	async fn get(&self, key: &str) -> Result<String, ErrExMemoryGet> {
 		self._get(key, KeyVariant::String).await
 	}
@@ -288,5 +292,12 @@ impl ExternalMemoryBase for ExternalMemoryRedis {
 	async fn delete_many_i32(&self, keys: &[&str]) -> Result<usize, ErrExMemoryDelete> {
 		let res = self._delete_many(keys, KeyVariant::I32).await?;
 		Ok(res)
+	}
+}
+
+impl ExMemory for ExMemoryRedis {
+	fn run_background_workers(
+		&'static self, _config: &AppConfig, _cancellation_token: CancellationToken,
+	) {
 	}
 }

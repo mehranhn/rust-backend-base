@@ -2,16 +2,19 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::{
-	app::{App, errors::ErrServerError},
+	app::App,
 	dtos::{AuthData, LoginDto},
-	external::repo::{ExRepo, ExRepoAuth, errors::ErrExRepoAuthRenewSession},
-	utils::{generate_uuid, hash_password},
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, ExRepoAuth, errors::ErrExRepoAuthRenewSession},
+	},
+	utils::{check_password, generate_uuid},
 };
 
 pub mod errors;
 mod utils;
 
-impl<D: ExRepo> App<D> {
+impl<D: ExRepo, M: ExMemory> App<D, M> {
 	pub async fn renew_session(
 		&self, session_id: Uuid,
 	) -> Result<AuthData, errors::ErrSvRenewSession> {
@@ -37,7 +40,11 @@ impl<D: ExRepo> App<D> {
 		let mut c = self.repo.connection().await?;
 		let user = c.get_user_by_username_for_login(&dto.username).await?;
 
-		if user.hashed_password != hash_password(&dto.username, &dto.password) {
+		if !check_password(
+			dto.username.as_str(),
+			dto.password.as_str(),
+			user.hashed_password.as_slice(),
+		) {
 			return Err(errors::ErrSvAuthLogin::IncorrectPassword);
 		}
 
@@ -55,9 +62,10 @@ impl<D: ExRepo> App<D> {
 		})
 	}
 
-	pub async fn logout(&self, session_id: Uuid) -> Result<(), ErrServerError> {
+	pub async fn logout(&self, session_id: Uuid) -> Result<(), errors::ErrSvAuthLogout> {
 		let mut c = self.repo.connection().await?;
 		c.session_logout(session_id).await?;
+		self.session_blacklist_blacklist(session_id).await?;
 
 		Ok(())
 	}

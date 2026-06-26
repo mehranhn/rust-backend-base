@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
 	future::ready,
 	sync::atomic::{AtomicI32, AtomicU64, Ordering},
@@ -11,13 +9,16 @@ use papaya::HashMap;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::external::memory::{
-	ExternalMemoryBase,
-	errors::{
-		ErrExMemoryDelete, ErrExMemoryFetchAddOrSet, ErrExMemoryGet, ErrExMemorySet,
-		ErrExMemoryUpdateTtl, ErrExMemoryUpsert,
+use crate::{
+	app::AppConfig,
+	external::memory::{
+		ExMemory, ExMemoryBase,
+		errors::{
+			ErrExMemoryDelete, ErrExMemoryFetchAddOrSet, ErrExMemoryGet, ErrExMemorySet,
+			ErrExMemoryUpdateTtl, ErrExMemoryUpsert,
+		},
+		types::ExMTtlValue,
 	},
-	types::ExMTtlValue,
 };
 
 struct WithTtl<T: Send + Sync + 'static> {
@@ -72,17 +73,15 @@ impl<T: Send + Sync + 'static> WithTtl<T> {
 	}
 }
 
-pub struct ExternalMemoryPapaya {
+#[derive(Default)]
+pub struct ExMemoryPapaya {
 	str_map: HashMap<String, WithTtl<String>>,
 	i32_map: HashMap<String, WithTtl<AtomicI32>>,
 }
 
-impl ExternalMemoryPapaya {
+impl ExMemoryPapaya {
 	pub fn new() -> Self {
-		Self {
-			str_map: Default::default(),
-			i32_map: Default::default(),
-		}
+		Self::default()
 	}
 
 	pub fn remove_expired(&self) {
@@ -101,7 +100,9 @@ impl ExternalMemoryPapaya {
 					}
 
 					_ = tokio::time::sleep(interval).fuse() => {
+						tracing::debug!("running papaya background cleaner. before clean: keys {}", self.str_map.len() + self.i32_map.len());
 						self.remove_expired();
+						tracing::debug!("running papaya background cleaner. after clean: keys {}", self.str_map.len() + self.i32_map.len());
 					}
 				}
 			}
@@ -109,7 +110,7 @@ impl ExternalMemoryPapaya {
 	}
 }
 
-impl ExternalMemoryBase for ExternalMemoryPapaya {
+impl ExMemoryBase for ExMemoryPapaya {
 	fn get(&self, key: &str) -> impl Future<Output = Result<String, ErrExMemoryGet>> + Send {
 		match self.str_map.pin().get(key) {
 			Some(v) => match v.checked_read() {
@@ -263,5 +264,13 @@ impl ExternalMemoryBase for ExternalMemoryPapaya {
 		}
 
 		ready(Ok(sum))
+	}
+}
+
+impl ExMemory for ExMemoryPapaya {
+	fn run_background_workers(
+		&'static self, _config: &AppConfig, cancellation_token: CancellationToken,
+	) {
+		self.run_background_cleaner(std::time::Duration::from_mins(15), cancellation_token);
 	}
 }

@@ -1,6 +1,7 @@
 use uuid::Uuid;
 
 use crate::{
+	app::errors::ErrServerError,
 	dtos::{
 		AdminCreateDto, AdminDto, AdminDtoSortColumns, AdminUpdateDto, PaginatedResult,
 		PaginationFilterWithSearchOrder,
@@ -8,7 +9,6 @@ use crate::{
 	external::repo::errors::{
 		ErrExRepoAdminCreate, ErrExRepoAdminDelete, ErrExRepoAdminGetById, ErrExRepoAdminUpdate,
 	},
-	app::errors::ErrServerError,
 };
 
 pub trait ExRepoAdmin: Send {
@@ -21,7 +21,7 @@ pub trait ExRepoAdmin: Send {
 	) -> impl Future<Output = Result<AdminDto, ErrExRepoAdminGetById>> + Send;
 
 	fn admin_create(
-		&mut self, id: Uuid, dto: AdminCreateDto<Vec<u8>>,
+		&mut self, dto: AdminCreateDto<Vec<u8>>,
 	) -> impl Future<Output = Result<(), ErrExRepoAdminCreate>> + Send;
 
 	fn admin_update(

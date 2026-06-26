@@ -5,14 +5,14 @@ use sea_query::{Expr, ExprTrait};
 #[sqlx(rename_all = "UPPERCASE")]
 pub enum Roles {
 	Admin,
-	Salesmen,
+	User,
 }
 
 impl Into<&str> for Roles {
 	fn into(self) -> &'static str {
 		match self {
 			Roles::Admin => "ADMIN",
-			Roles::Salesmen => "SALESMEN",
+			Roles::User => "USER",
 		}
 	}
 }
@@ -29,20 +29,20 @@ impl Roles {
 	}
 }
 
-impl From<crate::permission::Roles> for Roles {
-	fn from(value: crate::permission::Roles) -> Self {
+impl From<crate::enums::Roles> for Roles {
+	fn from(value: crate::enums::Roles) -> Self {
 		match value {
-			crate::permission::Roles::Admin => Self::Admin,
-			crate::permission::Roles::Salesmen => Self::Salesmen,
+			crate::enums::Roles::Admin => Self::Admin,
+			crate::enums::Roles::User => Self::User,
 		}
 	}
 }
 
-impl Into<crate::permission::Roles> for Roles {
-	fn into(self) -> crate::permission::Roles {
+impl Into<crate::enums::Roles> for Roles {
+	fn into(self) -> crate::enums::Roles {
 		match self {
-			Roles::Admin => crate::permission::Roles::Admin,
-			Roles::Salesmen => crate::permission::Roles::Salesmen,
+			Roles::Admin => crate::enums::Roles::Admin,
+			Roles::User => crate::enums::Roles::User,
 		}
 	}
 }

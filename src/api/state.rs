@@ -1,19 +1,20 @@
-use crate::{external::repo::ExRepo, app::App};
+use crate::{
+	app::App,
+	external::{memory::ExMemory, repo::ExRepo},
+};
 
-pub struct AxumState<Repo: ExRepo> {
-	pub app: &'static App<Repo>,
+pub struct AxumState<D: ExRepo, M: ExMemory> {
+	pub app: &'static App<D, M>,
 }
 
-impl<Repo: ExRepo> AxumState<Repo> {
-	pub fn new(app: &'static App<Repo>) -> Self {
+impl<D: ExRepo, M: ExMemory> AxumState<D, M> {
+	pub fn new(app: &'static App<D, M>) -> Self {
 		Self { app }
 	}
 }
 
-impl<Repo: ExRepo> Clone for AxumState<Repo> {
+impl<D: ExRepo, M: ExMemory> Clone for AxumState<D, M> {
 	fn clone(&self) -> Self {
-		Self {
-			app: self.app,
-		}
+		Self { app: self.app }
 	}
 }

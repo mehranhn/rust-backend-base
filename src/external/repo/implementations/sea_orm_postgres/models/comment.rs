@@ -14,15 +14,15 @@ pub struct Model {
 	#[sea_orm(default_value = "CURRENT_TIMESTAMP")]
 	pub updated_at: OffsetDateTime,
 
-	pub post_id: Uuid,
-
-	#[sea_orm(belongs_to, from = "user_id", to = "id")]
-	pub post: HasOne<super::post::Entity>,
-
 	pub user_id: Uuid,
 
 	#[sea_orm(belongs_to, from = "user_id", to = "id")]
 	pub user: HasOne<super::user::Entity>,
+
+	pub post_id: Uuid,
+
+	#[sea_orm(belongs_to, from = "post_id", to = "id")]
+	pub post: HasOne<super::post::Entity>,
 
 	#[sea_orm(column_type = "Text")]
 	pub content: String,

@@ -1,11 +1,12 @@
-use rust_backend_base::{
-	dtos::SeedDto,
-	external::repo::{ExRepo, implementations::ExRepoImplSeaQueryPg},
-	app::App,
-	utils,
-};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use clap::Parser;
+use rust_backend_base::{
+	app::App,
+	external::{
+		memory::implementations::ExMemoryPapaya, repo::implementations::ExRepoImplSeaOrmPg,
+	},
+	utils,
+};
 use tokio_util::sync::CancellationToken;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -57,26 +58,23 @@ async fn run() {
 		Commands::Run {
 			config: config_path,
 		} => {
-			let config = rust_backend_base::config::read_config(config_path).await.unwrap();
-			tracing_subscriber::registry()
-				.with(tracing_subscriber::EnvFilter::new(format!(
-					"sqlx={0},tower_http={0},rust_backend_base={0}",
-					config.log_level.as_ref()
-				)))
-				.with(tracing_subscriber::fmt::layer())
-				.init();
-			let db = ExRepoImplSeaQueryPg::new(&config.database_url)
+			let config = rust_backend_base::config::read_config(config_path)
 				.await
 				.unwrap();
-			db.run_migrations().await.unwrap();
-			db.seed(SeedDto {
-				super_admin_username: &config.app.super_admin_username,
-				super_admin_hashed_password: &config.app.super_admin_hashed_password,
-			})
-			.await
-			.unwrap();
+			tracing_subscriber::registry()
+				// .with(tracing_subscriber::EnvFilter::new(format!(
+				// 	"sqlx={0},tower_http={0},rust_backend_base={0}",
+				// 	config.log_level.as_ref()
+				// )))
+				.with(tracing_subscriber::EnvFilter::new(
+					config.log_level.as_ref(),
+				))
+				.with(tracing_subscriber::fmt::layer())
+				.init();
+			let db = ExRepoImplSeaOrmPg::new(&config.database_url).await.unwrap();
+			let memory = ExMemoryPapaya::new();
 			let shutdown_token = CancellationToken::new();
-			let app = App::new(config.app.clone(), shutdown_token.clone(), db);
+			let app = App::new(config.app.clone(), shutdown_token.clone(), db, memory);
 			let app = Box::leak(Box::new(app));
 			app.init().await.unwrap();
 
@@ -85,7 +83,9 @@ async fn run() {
 				terminate_on_intrupt(ct).await;
 			});
 
-			rust_backend_base::api::start(app, config.api).await.unwrap();
+			rust_backend_base::api::start(app, config.api)
+				.await
+				.unwrap();
 		},
 		Commands::HashPassword(h) => match h {
 			HashPasswordCommands::Sha256(p) => {

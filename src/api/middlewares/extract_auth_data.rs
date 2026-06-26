@@ -1,7 +1,7 @@
 use crate::{
 	api::utils::jwt_token_into_cookie,
 	dtos::AuthData,
-	external::repo::ExRepo,
+	external::{memory::ExMemory, repo::ExRepo},
 	utils::{decode_from_jwt, encode_to_jwt},
 };
 use axum::{
@@ -14,8 +14,8 @@ use axum_extra::extract::CookieJar;
 
 use crate::api::state::AxumState;
 
-pub async fn extract_auth_data<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, cookie: CookieJar, mut request: Request, next: Next,
+pub async fn extract_auth_data<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, cookie: CookieJar, mut request: Request, next: Next,
 ) -> Response {
 	let mut new_token: Option<(AuthData, String, bool)> = None;
 	let token: Option<(&str, bool)> = match cookie.get("auth") {
@@ -39,7 +39,13 @@ pub async fn extract_auth_data<Repo: ExRepo>(
 		let decoded_token = decode_from_jwt(token, &s.app.config().jwt_secret);
 		match decoded_token {
 			Ok(auth_data) => {
-				request.extensions_mut().insert(auth_data);
+				if let Ok(is_blacklist) = s
+					.app
+					.session_blacklist_is_blacklist(auth_data.session_id)
+					.await && !is_blacklist
+				{
+					request.extensions_mut().insert(auth_data);
+				}
 			},
 			Err(Some(auth_data)) => match s.app.renew_session(auth_data.session_id).await {
 				Ok(new_auth_data) => {

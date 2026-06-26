@@ -3,7 +3,7 @@ use time::OffsetDateTime;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::permission::Roles;
+use crate::enums::Roles;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, ToSchema)]
 pub struct AuthData {

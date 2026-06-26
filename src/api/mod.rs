@@ -1,6 +1,9 @@
 use std::{net::SocketAddr, time::Duration};
 
-use crate::{app::App, external::repo::ExRepo};
+use crate::{
+	app::App,
+	external::{memory::ExMemory, repo::ExRepo},
+};
 use axum::{Router, middleware::from_fn_with_state};
 use axum_server::{Handle, tls_rustls::RustlsConfig};
 use tokio::net::TcpListener;
@@ -25,11 +28,11 @@ mod state;
 mod openapi;
 
 mod responses;
+mod utils;
 #[cfg(feature = "embed-web-ui")]
 mod web_ui;
-mod utils;
 
-fn routes<Repo: ExRepo>(state: AxumState<Repo>) -> Router {
+fn routes<D: ExRepo, M: ExMemory>(state: AxumState<D, M>) -> Router {
 	let r = Router::new()
 		.nest(
 			"/api",
@@ -73,8 +76,8 @@ pub enum ErrStart {
 	AxumServer(#[from] std::io::Error),
 }
 
-pub async fn start<Repo: ExRepo>(
-	app: &'static App<Repo>, config: ConfigApi,
+pub async fn start<D: ExRepo, M: ExMemory>(
+	app: &'static App<D, M>, config: ConfigApi,
 ) -> Result<(), ErrStart> {
 	let state = AxumState::new(app);
 	let routes = routes(state);

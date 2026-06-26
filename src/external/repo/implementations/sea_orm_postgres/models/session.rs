@@ -22,6 +22,8 @@ pub struct Model {
 	pub expire_at: Option<OffsetDateTime>,
 
 	pub last_access: OffsetDateTime,
+
+	pub deleted_at: Option<OffsetDateTime>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

@@ -17,9 +17,8 @@ pub enum CustomErrorVariant {
 	NotFound,
 	Constraint(String),
 	MessageIncludes(String),
-	IsUnique,
-	IsForeignKey,
-	IsCheck,
+	IsUnique(Option<String>),
+	IsForeignKey(Option<String>),
 }
 
 impl Parse for CustomErrorVariant {
@@ -31,7 +30,7 @@ impl Parse for CustomErrorVariant {
 				let _ = input.parse::<Token![=]>()?;
 				let lit = input.parse::<Literal>()?;
 				let lit_str = lit.to_string();
-				if lit_str.starts_with("\"") && lit_str.starts_with("\"") {
+				if lit_str.starts_with("\"") && lit_str.ends_with("\"") {
 					let constraint_name = &lit_str[1..(lit_str.len() - 1)];
 					Ok(Self::Constraint(String::from(constraint_name)))
 				} else {
@@ -45,7 +44,7 @@ impl Parse for CustomErrorVariant {
 				let _ = input.parse::<Token![=]>()?;
 				let lit = input.parse::<Literal>()?;
 				let lit_str = lit.to_string();
-				if lit_str.starts_with("\"") && lit_str.starts_with("\"") {
+				if lit_str.starts_with("\"") && lit_str.ends_with("\"") {
 					let msg_name = &lit_str[1..(lit_str.len() - 1)];
 					Ok(Self::MessageIncludes(String::from(msg_name)))
 				} else {
@@ -55,12 +54,39 @@ impl Parse for CustomErrorVariant {
 					))
 				}
 			},
-			"unique" => Ok(Self::IsUnique),
-			"fk" => Ok(Self::IsForeignKey),
-			"check" => Ok(Self::IsCheck),
+			"unique" => {
+				let Ok(_) = input.parse::<Token![=]>() else {
+					return Ok(Self::IsUnique(None));
+				};
+				let Ok(lit) = input.parse::<Literal>() else {
+					return Ok(Self::IsUnique(None));
+				};
+				let lit_str = lit.to_string();
+				if lit_str.starts_with("\"") && lit_str.ends_with("\"") {
+					let msg_name = &lit_str[1..(lit_str.len() - 1)];
+					Ok(Self::IsUnique(Some(String::from(msg_name))))
+				} else {
+					Ok(Self::IsUnique(None))
+				}
+			},
+			"fk" => {
+				let Ok(_) = input.parse::<Token![=]>() else {
+					return Ok(Self::IsForeignKey(None));
+				};
+				let Ok(lit) = input.parse::<Literal>() else {
+					return Ok(Self::IsForeignKey(None));
+				};
+				let lit_str = lit.to_string();
+				if lit_str.starts_with("\"") && lit_str.ends_with("\"") {
+					let msg_name = &lit_str[1..(lit_str.len() - 1)];
+					Ok(Self::IsForeignKey(Some(String::from(msg_name))))
+				} else {
+					Ok(Self::IsForeignKey(None))
+				}
+			},
 			_ => Err(syn::Error::new(
 				ident.span(),
-				"token in esqlx(...) must be one of [not_found, constraint = \"xyz\", msg = \"xyz\", unique, fk, check]",
+				"token in esqlx(...) must be one of [not_found, constraint = \"xyz\", msg = \"xyz\", unique, fk]",
 			)),
 		}
 	}
@@ -218,7 +244,7 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromSqlxParsedAst<'a>, syn
 	match &ast.data {
 		syn::Data::Struct(_) => Err(syn::Error::new(
 			ast.span(),
-			"must use FromSqlxError on a enum",
+			"must use FromSqlError on a enum",
 		)),
 		syn::Data::Enum(data_enum) => Ok(FromSqlxParsedAst {
 			enum_name: &ast.ident,
@@ -227,7 +253,7 @@ pub fn parse<'a>(ast: &'a syn::DeriveInput) -> Result<FromSqlxParsedAst<'a>, syn
 		}),
 		syn::Data::Union(_) => Err(syn::Error::new(
 			ast.span(),
-			"must use FromSqlxError on a enum",
+			"must use FromSqlError on a enum",
 		)),
 	}
 }

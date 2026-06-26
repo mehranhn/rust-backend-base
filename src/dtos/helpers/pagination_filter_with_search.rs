@@ -20,6 +20,10 @@ impl PaginationFilterWithSearch {
 		self.page_take.page()
 	}
 
+	pub fn page_index(&self) -> u64 {
+		self.page() - 1
+	}
+
 	pub fn skip(&self) -> u64 {
 		self.page_take.skip()
 	}

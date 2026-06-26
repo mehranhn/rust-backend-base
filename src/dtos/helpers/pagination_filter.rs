@@ -8,10 +8,10 @@ use crate::constants::MAX_PAGINATION_SIZE;
 
 fn de_u64_from_str<'de, D>(d: D) -> Result<u64, D::Error>
 where
-    D: Deserializer<'de>,
+	D: Deserializer<'de>,
 {
-    let s = String::deserialize(d)?;
-    s.parse::<u64>().map_err(serde::de::Error::custom)
+	let s = String::deserialize(d)?;
+	s.parse::<u64>().map_err(serde::de::Error::custom)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -39,8 +39,12 @@ impl PaginationFilter {
 		self.page
 	}
 
+	pub fn page_index(&self) -> u64 {
+		self.page() - 1
+	}
+
 	pub fn skip(&self) -> u64 {
-		(self.page() - 1) * self.take()
+		self.page_index() * self.take()
 	}
 
 	pub fn take(&self) -> u64 {

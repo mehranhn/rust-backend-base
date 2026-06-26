@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [".", "custom-macros", "sea-orm-pg-migrations", "sea-query-pg-migrations"]
+members = [".", "custom-macros", "sea-orm-migrations", "sea-query-pg-migrations"]
 
 [workspace.package]
 edition = "2024"
@@ -34,10 +34,11 @@ jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }
 dotenvy = "0.15.7"
 itertools = "0.15.0"
 sea-query-pg-migrations = { path = "./sea-query-pg-migrations" }
-sea-orm-pg-migrations = { path = "./sea-orm-pg-migrations" }
 sea-query = { version = "1.0.0-rc.22", default-features = false, features = ["derive", "backend-postgres"] }
 sea-query-sqlx = { version = "0.9.1", features = [ "sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls" ] }
 sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-postgres", "with-json", "with-rust_decimal", "with-bigdecimal", "with-uuid", "with-time", "with-ipnetwork", "with-mac_address", "runtime-tokio-rustls"] }
+sea-orm-migration = { version = "2.0.0-rc.41", features = ["runtime-tokio-rustls", "sqlx-postgres"]}
+sea-orm-migrations = { path = "./sea-orm-migrations" }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "parking_lot", "time"] }
 custom-macros = { path = "./custom-macros" }
@@ -91,6 +92,7 @@ sea-query-pg-migrations = { workspace = true }
 sea-query = { workspace = true }
 sea-query-sqlx = { workspace = true }
 sea-orm = { workspace = true }
+sea-orm-migrations = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 papaya = { workspace = true }

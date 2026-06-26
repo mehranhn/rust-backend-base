@@ -14,3 +14,13 @@ pub fn jwt_token_into_cookie(token: &str, expire_date: Option<OffsetDateTime>) -
 
 	cb.build().to_string()
 }
+
+pub fn jwt_token_remove_cookie() -> String {
+	Cookie::build(("auth", ""))
+		.http_only(true)
+		.same_site(SameSite::Strict)
+		.path("/api")
+		.removal()
+		.build()
+		.to_string()
+}

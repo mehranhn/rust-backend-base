@@ -5,7 +5,10 @@ use crate::{
 	api::{responses::RespServerErrorLogged, state::AxumState},
 	app::errors::ErrSvAuthLogin,
 	dtos::LoginDto,
-	external::repo::{ExRepo, errors::ErrExRepoUserGetUserByUsername},
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, errors::ErrExRepoUserGetUserByUsername},
+	},
 	utils::encode_to_jwt,
 };
 
@@ -31,8 +34,8 @@ pub enum Res {
 		Res,
 	)
 )]
-pub async fn auth_login<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, Json(data): Json<LoginDto>,
+pub async fn auth_login<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, Json(data): Json<LoginDto>,
 ) -> Res {
 	match s.app.login(data).await {
 		Ok(auth_data) => match encode_to_jwt(

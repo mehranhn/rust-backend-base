@@ -37,5 +37,5 @@ pub trait ExRepo: Send + Sync + 'static {
 
 	fn run_migrations(&self) -> impl Future<Output = Result<(), ErrServerError>> + Send;
 
-	fn seed(&self, dto: SeedDto<'_>) -> impl Future<Output = Result<(), ErrServerError>> + Send;
+	fn seed(&self, dto: SeedDto) -> impl Future<Output = Result<(), ErrServerError>> + Send;
 }

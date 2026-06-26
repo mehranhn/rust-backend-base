@@ -1,5 +1,3 @@
-use std::marker::Send;
-
 use sea_query::{Asterisk, Expr, ExprTrait, PostgresQueryBuilder, Query};
 use sea_query_sqlx::SqlxBinder;
 use sqlx::{AssertSqlSafe, FromRow, SqlSafeStr};
@@ -7,6 +5,7 @@ use time::{OffsetDateTime, PrimitiveDateTime};
 use uuid::Uuid;
 
 use crate::{
+	app::errors::ErrServerError,
 	dtos::{AuthData, UserLoginDto},
 	external::repo::{
 		auth::ExRepoAuth,
@@ -14,14 +13,12 @@ use crate::{
 		implementations::sea_query_postgres::{
 			models::{SessionIden, User, UserIden},
 			types::Roles,
+			utils::{DbHandle, DbHandleInner},
 		},
 	},
-	app::errors::ErrServerError,
 };
 
-use super::utils::ExRepoImplSeaQueryHandle;
-
-impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
+impl<T: DbHandleInner> ExRepoAuth for DbHandle<T> {
 	async fn get_user_by_username_for_login(
 		&mut self, username: &str,
 	) -> Result<UserLoginDto, ErrExRepoUserGetUserByUsername> {
@@ -29,7 +26,6 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 			.from(UserIden::Table)
 			.column((UserIden::Table, Asterisk))
 			.and_where(Expr::col((UserIden::Table, UserIden::Username)).eq(username))
-			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
 		let res = sqlx::query_as_with::<_, User, _>(AssertSqlSafe(sql).into_sql_str(), values)
@@ -86,7 +82,8 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAuth for T {
 	async fn session_create(
 		&mut self, session_id: Uuid, user_id: Uuid, expire_at: Option<OffsetDateTime>,
 	) -> Result<(), ErrServerError> {
-		let exp: Option<PrimitiveDateTime> = expire_at.map(|e| PrimitiveDateTime::new(e.date(), e.time()));
+		let exp: Option<PrimitiveDateTime> =
+			expire_at.map(|e| PrimitiveDateTime::new(e.date(), e.time()));
 		let (sql, values) = Query::insert()
 			.into_table(SessionIden::Table)
 			.columns([SessionIden::Id, SessionIden::UserId, SessionIden::ExpireAt])

@@ -1,11 +1,13 @@
-use crate::external::memory::types::ExMTtlValue;
+use tokio_util::sync::CancellationToken;
+
+use crate::{app::AppConfig, external::memory::types::ExMTtlValue};
 
 pub mod implementations;
 
 pub mod errors;
 pub mod types;
 
-pub trait ExternalMemoryBase: Send + Sync + 'static {
+pub trait ExMemoryBase: Send + Sync + 'static {
 	fn get(&self, key: &str)
 	-> impl Future<Output = Result<String, errors::ErrExMemoryGet>> + Send;
 
@@ -58,4 +60,8 @@ pub trait ExternalMemoryBase: Send + Sync + 'static {
 	) -> impl Future<Output = Result<usize, errors::ErrExMemoryDelete>> + Send;
 }
 
-pub trait ExternalMemory: ExternalMemoryBase {}
+pub trait ExMemory: ExMemoryBase {
+	fn run_background_workers(
+		&'static self, config: &AppConfig, cancellation_token: CancellationToken,
+	);
+}

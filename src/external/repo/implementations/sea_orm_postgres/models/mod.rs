@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-mod comment;
-mod post;
-mod session;
-mod user;
+pub mod comment;
+pub mod post;
+pub mod session;
+pub mod user;

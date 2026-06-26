@@ -13,3 +13,4 @@ pub mod permission;
 pub mod prelude;
 pub mod utils;
 pub mod validators;
+pub mod enums;

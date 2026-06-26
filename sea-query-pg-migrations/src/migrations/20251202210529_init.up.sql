@@ -4,7 +4,6 @@ CREATE TYPE roles AS ENUM ('ADMIN', 'SALESMEN');
 CREATE TABLE IF NOT EXISTS users(
     id uuid PRIMARY KEY,
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at timestamp,
     role roles NOT NULL,
     username varchar(255) NOT NULL UNIQUE,
     hashed_password bytea NOT NULL,

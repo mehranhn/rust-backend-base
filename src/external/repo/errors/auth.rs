@@ -1,9 +1,9 @@
-use custom_macros::{FromBoxError, FromSqlxError};
+use custom_macros::{FromBoxError, FromSqlError};
 use thiserror::Error;
 
 use crate::error::DynError;
 
-#[derive(Debug, Error, FromBoxError, FromSqlxError)]
+#[derive(Debug, Error, FromBoxError, FromSqlError)]
 pub enum ErrExRepoAuthRenewSession {
 	#[error("Not Found")]
 	#[esqlx(not_found)]

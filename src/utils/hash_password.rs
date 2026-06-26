@@ -6,3 +6,7 @@ pub fn hash_password(username: &str, password: &str) -> Vec<u8> {
     hasher.update(password.as_bytes());
     hasher.finalize().to_vec()
 }
+
+pub fn check_password(username: &str, password: &str, db_password: &[u8]) -> bool {
+	db_password == hash_password(username, password)
+}

@@ -1,6 +1,7 @@
-use std::marker::Send;
-
-use sea_query::{Asterisk, Expr, ExprTrait, Func, PostgresQueryBuilder, Query};
+use sea_query::{
+	Asterisk, Expr, ExprTrait, Func, Order, PostgresQueryBuilder, Query,
+	extension::postgres::PgExpr,
+};
 use sea_query_sqlx::SqlxBinder;
 use sqlx::{AssertSqlSafe, SqlSafeStr};
 use uuid::Uuid;
@@ -20,20 +21,41 @@ use crate::{
 			helpers::CountHelper,
 			models::{User, UserIden},
 			types::Roles,
+			utils::{DbHandle, DbHandleInner},
 		},
 	},
 };
 
-use super::utils::ExRepoImplSeaQueryHandle;
-
-impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
+impl<T: DbHandleInner> ExRepoAdmin for DbHandle<T> {
 	async fn admin_get_list(
 		&mut self, filter: PaginationFilterWithSearchOrder<AdminDtoSortColumns>,
 	) -> Result<PaginatedResult<AdminDto>, ErrServerError> {
 		let mut q = Query::select();
+
 		q.from(UserIden::Table)
-			.and_where(Expr::col((UserIden::Table, UserIden::Role)).eq(Roles::Admin.into_expr()))
-			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null());
+			.and_where(Expr::col((UserIden::Table, UserIden::Role)).eq(Roles::Admin.into_expr()));
+
+		if filter.search().as_str() != "" {
+			q.and_where(
+				Expr::col((UserIden::Table, UserIden::Username)).contains(filter.search().as_str()),
+			);
+		}
+
+		let ord = if filter.order_by_is_asc() {
+			Order::Asc
+		} else {
+			Order::Desc
+		};
+
+		if let Some(c) = filter.order_by_column() {
+			match c {
+				AdminDtoSortColumns::Id => q.order_by(UserIden::Id, ord),
+				AdminDtoSortColumns::CreatedAt =>  q.order_by(UserIden::CreatedAt, ord),
+				AdminDtoSortColumns::Username =>  q.order_by(UserIden::Username, ord),
+				AdminDtoSortColumns::Phone =>  q.order_by(UserIden::Phone, ord),
+				AdminDtoSortColumns::Email =>  q.order_by(UserIden::Email, ord),
+			};
+		}
 
 		let (sql, values) = q
 			.clone()
@@ -67,7 +89,6 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 			.column((UserIden::Table, Asterisk))
 			.and_where(Expr::col((UserIden::Table, UserIden::Id)).eq(id))
 			.and_where(Expr::col((UserIden::Table, UserIden::Role)).eq(Roles::Admin.into_expr()))
-			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
 		let res = sqlx::query_as_with::<_, User, _>(AssertSqlSafe(sql).into_sql_str(), values)
@@ -78,7 +99,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 	}
 
 	async fn admin_create(
-		&mut self, id: uuid::Uuid, dto: AdminCreateDto<Vec<u8>>,
+		&mut self, dto: AdminCreateDto<Vec<u8>>,
 	) -> Result<(), ErrExRepoAdminCreate> {
 		let (sql, values) = Query::insert()
 			.into_table(UserIden::Table)
@@ -91,7 +112,6 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 				UserIden::Email,
 			])
 			.values([
-				id.into(),
 				Roles::Admin.into(),
 				dto.username.into_inner().into(),
 				dto.password.into(),
@@ -113,8 +133,7 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 		let mut q = Query::update();
 
 		q.table(UserIden::Table)
-			.and_where(Expr::col(UserIden::Id).eq(id))
-			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null());
+			.and_where(Expr::col(UserIden::Id).eq(id));
 
 		if let Some(v) = dto.username {
 			q.value(UserIden::Username, v);
@@ -154,11 +173,9 @@ impl<T: ExRepoImplSeaQueryHandle + Send> ExRepoAdmin for T {
 	}
 
 	async fn admin_delete(&mut self, id: Uuid) -> Result<(), ErrExRepoAdminDelete> {
-		let (sql, values) = Query::update()
-			.table(UserIden::Table)
-			.value(UserIden::DeletedAt, Expr::current_timestamp())
+		let (sql, values) = Query::delete()
+			.from_table(UserIden::Table)
 			.and_where(Expr::col(UserIden::Id).eq(id))
-			.and_where(Expr::col((UserIden::Table, UserIden::DeletedAt)).is_null())
 			.build_sqlx(PostgresQueryBuilder);
 
 		let res = sqlx::query_with(AssertSqlSafe(sql).into_sql_str(), values)

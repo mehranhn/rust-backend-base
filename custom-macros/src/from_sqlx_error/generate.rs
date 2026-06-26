@@ -1,4 +1,3 @@
-use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::quote;
 use syn::Ident;
@@ -7,8 +6,8 @@ use crate::from_sqlx_error::parse::{
 	CustomError, CustomErrorVariant, FromSqlxParsedAst, Generic, GenericVariant,
 };
 
-fn generate_generic(data: Generic<'_>) -> proc_macro2::TokenStream {
-	match data.variant {
+fn generate_generic(data: &Generic<'_>) -> proc_macro2::TokenStream {
+	match &data.variant {
 		GenericVariant::Unit => {
 			let ident = data.enum_variant_name;
 
@@ -20,7 +19,7 @@ fn generate_generic(data: Generic<'_>) -> proc_macro2::TokenStream {
 			field_name,
 			is_boxed,
 		} => {
-			if is_boxed {
+			if *is_boxed {
 				let ident = data.enum_variant_name;
 
 				quote! {
@@ -35,7 +34,7 @@ fn generate_generic(data: Generic<'_>) -> proc_macro2::TokenStream {
 			}
 		},
 		GenericVariant::Tupple { is_boxed } => {
-			if is_boxed {
+			if *is_boxed {
 				let ident = data.enum_variant_name;
 
 				quote! {
@@ -58,9 +57,9 @@ fn generate_custom_not_found<'a>(data: &'a Vec<CustomError<'a>>) -> Option<&'a I
 		.map(|f| f.enum_variant_name)
 }
 
-fn generate_custom(data: CustomError) -> proc_macro2::TokenStream {
+fn generate_custom(data: &CustomError) -> proc_macro2::TokenStream {
 	let ident = data.enum_variant_name;
-	match data.variant {
+	match &data.variant {
 		CustomErrorVariant::NotFound => {
 			quote! {}
 		},
@@ -90,33 +89,52 @@ fn generate_custom(data: CustomError) -> proc_macro2::TokenStream {
 				}
 			}
 		},
-		CustomErrorVariant::IsUnique => {
-			quote! {
-				if e.is_unique_violation() {
-					return Self::#ident;
-				}
+		CustomErrorVariant::IsUnique(n) => {
+			match n {
+				Some(name) => {
+					let literal = Literal::string(name.as_str());
+
+					quote! {
+						if e.is_foreign_key_violation() && e.message().contains(#literal) {
+							return Self::#ident;
+						}
+					}
+				},
+				None => {
+					quote! {
+						if e.is_foreign_key_violation() {
+							return Self::#ident;
+						}
+					}
+				},
 			}
 		},
-		CustomErrorVariant::IsForeignKey => {
-			quote! {
-				if e.is_foreign_key_violation() {
-					return Self::#ident;
-				}
-			}
-		},
-		CustomErrorVariant::IsCheck => {
-			quote! {
-				if e.is_check_violation() {
-					return Self::#ident;
-				}
+		CustomErrorVariant::IsForeignKey(n) => {
+			match n {
+				Some(name) => {
+					let literal = Literal::string(name.as_str());
+
+					quote! {
+						if e.is_foreign_key_violation() && e.message().contains(#literal) {
+							return Self::#ident;
+						}
+					}
+				},
+				None => {
+					quote! {
+						if e.is_foreign_key_violation() {
+							return Self::#ident;
+						}
+					}
+				},
 			}
 		},
 	}
 }
 
-pub fn generate<'a>(data: FromSqlxParsedAst<'a>) -> TokenStream {
+pub fn generate<'a>(data: &FromSqlxParsedAst<'a>) -> proc_macro2::TokenStream {
 	let enum_name = data.enum_name;
-	let generic_code = generate_generic(data.generic_variant);
+	let generic_code = generate_generic(&data.generic_variant);
 	let row_not_found = generate_custom_not_found(&data.custom_errors).map(|i| {
 		quote! {
 			sqlx::Error::RowNotFound => {
@@ -126,11 +144,11 @@ pub fn generate<'a>(data: FromSqlxParsedAst<'a>) -> TokenStream {
 	});
 	let custom_code = data
 		.custom_errors
-		.into_iter()
+		.iter()
 		.filter(|c| c.variant != CustomErrorVariant::NotFound)
 		.map(|c| generate_custom(c));
 
-	let code = quote! {
+	quote! {
 		impl From<sqlx::Error> for #enum_name {
 			fn from(value: sqlx::Error) -> Self {
 				match &value {
@@ -146,7 +164,5 @@ pub fn generate<'a>(data: FromSqlxParsedAst<'a>) -> TokenStream {
 				}
 			}
 		}
-	};
-
-	code.into()
+	}
 }

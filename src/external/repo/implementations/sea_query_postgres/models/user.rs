@@ -12,7 +12,6 @@ use super::super::types::Roles;
 pub struct User {
 	id: Uuid,
 	created_at: PrimitiveDateTime,
-	deleted_at: Option<PrimitiveDateTime>,
 	role: Roles,
 	username: String,
 	hashed_password: Vec<u8>,
@@ -36,7 +35,6 @@ impl Into<AdminDto> for User {
 		AdminDto {
 			id: self.id,
 			created_at: self.created_at.assume_utc(),
-			deleted_at: self.deleted_at.map(|d| d.assume_utc()),
 			username: self.username,
 			phone: self.phone,
 			email: self.email,

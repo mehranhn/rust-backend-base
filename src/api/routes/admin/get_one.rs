@@ -4,10 +4,13 @@ use uuid::Uuid;
 
 use crate::{
 	api::{extractors::Authenticated, responses::RespServerErrorLogged, state::AxumState},
-	dtos::AdminDto,
-	external::repo::{ExRepo, errors::ErrExRepoAdminGetById},
-	permission::PermAdminRead,
 	app::errors::ErrSvAdminGetById,
+	dtos::AdminDto,
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, errors::ErrExRepoAdminGetById},
+	},
+	permission::PermAdminRead,
 };
 
 #[derive(IntoResponses, custom_macros::AxumResponse)]
@@ -32,8 +35,8 @@ pub enum Res {
         ("bearerAuth" = ["AdminRead"])
     ),
 )]
-pub async fn admin_get_one<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, _: Authenticated<PermAdminRead>, Path(id): Path<Uuid>,
+pub async fn admin_get_one<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, _: Authenticated<PermAdminRead>, Path(id): Path<Uuid>,
 ) -> Res {
 	match s.app.admin_get_by_id(id).await {
 		Ok(d) => Res::Ok(d),

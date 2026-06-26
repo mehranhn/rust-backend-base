@@ -11,7 +11,7 @@ use crate::{
 		implementations::sea_query_postgres::{
 			models::UserIden,
 			types::Roles,
-			utils::{ExRepoImplSeaQueryPgConnection, ExRepoImplSeaQueryPgTx},
+			utils::{DbHandle, DbHandleConnection, DbHandleTransaction},
 		},
 	},
 	utils::generate_uuid,
@@ -24,11 +24,13 @@ mod models;
 mod types;
 mod utils;
 
+#[allow(dead_code)]
 pub struct ExRepoImplSeaQueryPg {
 	pool: PgPool,
 }
 
 impl ExRepoImplSeaQueryPg {
+	#[allow(dead_code)]
 	pub async fn new(database_url: &str) -> Result<Self, sqlx::error::Error> {
 		let pool = PgPool::connect(database_url).await?;
 		Ok(Self { pool })
@@ -36,17 +38,17 @@ impl ExRepoImplSeaQueryPg {
 }
 
 impl ExRepo for ExRepoImplSeaQueryPg {
-	type Connection = ExRepoImplSeaQueryPgConnection;
-	type Transaction = ExRepoImplSeaQueryPgTx<'static>;
+	type Connection = DbHandle<DbHandleConnection>;
+	type Transaction = DbHandle<DbHandleTransaction<'static>>;
 
 	async fn connection(&self) -> Result<Self::Connection, ErrServerError> {
 		let c = self.pool.acquire().await?;
-		Ok(ExRepoImplSeaQueryPgConnection::new(c))
+		Ok(DbHandle::new_connection(c))
 	}
 
 	async fn transaction(&self) -> Result<Self::Transaction, ErrServerError> {
 		let tx = self.pool.begin().await?;
-		Ok(ExRepoImplSeaQueryPgTx::new(tx))
+		Ok(DbHandle::new_transaction(tx))
 	}
 
 	async fn run_migrations(&self) -> Result<(), ErrServerError> {
@@ -54,7 +56,7 @@ impl ExRepo for ExRepoImplSeaQueryPg {
 		Ok(())
 	}
 
-	async fn seed(&self, dto: SeedDto<'_>) -> Result<(), ErrServerError> {
+	async fn seed(&self, dto: SeedDto) -> Result<(), ErrServerError> {
 		let (sql, values) = Query::insert()
 			.into_table(UserIden::Table)
 			.columns([

@@ -1,4 +1,5 @@
 mod papaya;
 mod redis;
 
-pub use redis::ExternalMemoryRedis;
+pub use papaya::ExMemoryPapaya;
+pub use redis::ExMemoryRedis;

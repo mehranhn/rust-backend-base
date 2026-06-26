@@ -4,9 +4,12 @@ use uuid::Uuid;
 
 use crate::{
 	api::{extractors::Authenticated, responses::RespServerErrorLogged, state::AxumState},
-	external::repo::{ExRepo, errors::ErrExRepoAdminDelete},
-	permission::PermAdminDelete,
 	app::errors::ErrSvAdminDelete,
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, errors::ErrExRepoAdminDelete},
+	},
+	permission::PermAdminDelete,
 };
 
 #[derive(IntoResponses, custom_macros::AxumResponse)]
@@ -31,8 +34,8 @@ pub enum Res {
         ("bearerAuth" = ["AdminDelete"])
     ),
 )]
-pub async fn admin_delete<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, _: Authenticated<PermAdminDelete>, Path(id): Path<Uuid>,
+pub async fn admin_delete<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, _: Authenticated<PermAdminDelete>, Path(id): Path<Uuid>,
 ) -> Res {
 	match s.app.admin_delete(id).await {
 		Ok(_) => Res::Ok,

@@ -35,6 +35,10 @@ impl<T> PaginationFilterWithSearchOrder<T> {
 		self.page_take_search.page()
 	}
 
+	pub fn page_index(&self) -> u64 {
+		self.page() - 1
+	}
+
 	pub fn skip(&self) -> u64 {
 		self.page_take_search.skip()
 	}

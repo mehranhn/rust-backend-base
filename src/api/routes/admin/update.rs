@@ -7,10 +7,13 @@ use uuid::Uuid;
 
 use crate::{
 	api::{extractors::Authenticated, responses::RespServerErrorLogged, state::AxumState},
-	dtos::AdminUpdateDto,
-	external::repo::{ExRepo, errors::ErrExRepoAdminUpdate},
-	permission::PermAdminUpdate,
 	app::errors::ErrSvAdminUpdate,
+	dtos::AdminUpdateDto,
+	external::{
+		memory::ExMemory,
+		repo::{ExRepo, errors::ErrExRepoAdminUpdate},
+	},
+	permission::PermAdminUpdate,
 };
 
 #[derive(IntoResponses, custom_macros::AxumResponse)]
@@ -35,8 +38,8 @@ pub enum Res {
         ("bearerAuth" = ["AdminUpdate"])
     ),
 )]
-pub async fn admin_update<Repo: ExRepo>(
-	State(s): State<AxumState<Repo>>, _: Authenticated<PermAdminUpdate>, Path(id): Path<Uuid>,
+pub async fn admin_update<D: ExRepo, M: ExMemory>(
+	State(s): State<AxumState<D, M>>, _: Authenticated<PermAdminUpdate>, Path(id): Path<Uuid>,
 	Json(data): Json<AdminUpdateDto>,
 ) -> Res {
 	match s.app.admin_update(id, data).await {

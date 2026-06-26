@@ -21,6 +21,7 @@ use self::modifiers::BaseRoute;
         super::routes::auth::login::auth_login,
         super::routes::auth::login_web::auth_login_web,
         super::routes::auth::logout::auth_logout,
+        super::routes::auth::logout_web::auth_logout_web,
     ),
     components(
         schemas(

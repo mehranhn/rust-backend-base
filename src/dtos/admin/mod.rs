@@ -18,7 +18,6 @@ pub struct AdminDto {
 	#[serde(with = "time::serde::rfc3339")]
 	pub created_at: OffsetDateTime,
 
-	pub deleted_at: Option<OffsetDateTime>,
 	pub username: String,
 	pub phone: Option<String>,
 	pub email: Option<String>,

@@ -1,4 +1,7 @@
-use crate::{api::state::AxumState, external::repo::ExRepo};
+use crate::{
+	api::state::AxumState,
+	external::{memory::ExMemory, repo::ExRepo},
+};
 use axum::{Router, routing::get};
 
 pub(crate) mod create;
@@ -7,7 +10,7 @@ pub(crate) mod get_list;
 pub(crate) mod get_one;
 pub(crate) mod update;
 
-pub fn routes_admin<Repo: ExRepo>() -> Router<AxumState<Repo>> {
+pub fn routes_admin<D: ExRepo, M: ExMemory>() -> Router<AxumState<D, M>> {
 	Router::new()
 		.route(
 			"/",
