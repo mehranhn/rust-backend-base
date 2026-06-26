@@ -1,14 +1,34 @@
 ## Backend Monolith base example for rust.
 using axum sqlx seaorm.
 
-# options
+# Generate a migration
+```bash
+sea-orm-cli migrate generate example
+```
+
+# Run
+```bash
+cargo run -- run
+```
+
+# Build
+```bash
+cargo build
+```
+
+# Generate a hashed password manually
+```bash
+cargo run -- hash-password sha256 USERNAME PASSWORD
+```
+
+# Options
 | Env Name                  | Default Value                                | Description                                          |
 |:--------------------------|:---------------------------------------------|:-----------------------------------------------------|
 |LOG_LEVEL                  |debug build: debug, release build: info       | values: off, error, wan, info, debug, trace          |
 |DATABASE_URL*              |-                                             | example: postgres://postgres:postgres@localhost/test |
 |LISTEN_UNIX                |-                                             | unix socket path. (LISTEN_ADDRESS and PORT will be ignored if you use this option)|
 |LISTEN_ADDRESS             |::                                            | listen address. example: 0.0.0.0                     |
-|PORT                       |5000                                          | listen port. example: 5000                           |
+|PORT                       |3000                                          | listen port. example: 3000                           |
 |TLS_KEY                    |-                                             | path to tls key file                                 |
 |TLS_CERT                   |-                                             | path to tls cert file                                |
 |SUPER_ADMIN_USERNAME       |admin                                         | default admin's username                             |
@@ -17,23 +37,3 @@ using axum sqlx seaorm.
 |JWT_EXP_AFTER_SECONDS      |300                                           | jwt access token expires after n seconds             |
 |SESSION_EXP_AFTER_SECONDS  |15552000                                      | session expires after n seconds                      |
 
-
-# generate a migration
-```bash
-sea-orm-cli migrate generate example
-```
-
-# run
-```bash
-cargo run -- run
-```
-
-# build
-```bash
-cargo build
-```
-
-# generate a hashed password manually
-```bash
-cargo run -- hash-password sha256 USERNAME PASSWORD
-```
