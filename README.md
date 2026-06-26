@@ -37,3 +37,35 @@ cargo run -- hash-password sha256 USERNAME PASSWORD
 |JWT_EXP_AFTER_SECONDS      |300                                           | jwt access token expires after n seconds             |
 |SESSION_EXP_AFTER_SECONDS  |15552000                                      | session expires after n seconds                      |
 
+you can also pass these options using a ron config file
+
+```bash
+cargo run -- run -c /path/to/config.ron
+```
+
+```ron
+Config(
+    log_level: info,
+    database_url: "postgres://postgres:postgres@localhost/rust-backend-base",
+    api: ConfigApi(
+        // host: Unix("/run/a.sock"),
+        host: Tcp(
+            address: "::",
+            port: 5000,
+            tls: None,
+            // tls: Some(
+            //     key: "path/to/key",
+            //     cert: "path/to/key",
+            // ),
+            fwmark: None,
+        ),
+    ),
+    app: AppConfig(
+        super_admin_username: "admin",
+        super_admin_hashed_password: "2CSU8F1pF7oC96qilonMtES7c/IDgIdssF0fN1N7eJI=",
+        jwt_secret: "some-random-secret",
+        jwt_exp_after: 300,
+        session_expire_after: 15552000
+    )
+)
+```
