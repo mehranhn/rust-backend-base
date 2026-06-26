@@ -66,12 +66,12 @@ pub mod errors {
 
 mod config {
 	use serde::Deserialize;
-	use serde_with::serde_as;
+	use serde_with::{serde_as, DurationSeconds, base64::Base64};
 
 	use crate::utils::hash_password;
 
-	#[derive(Debug, Clone, Deserialize)]
 	#[serde_as]
+	#[derive(Debug, Clone, Deserialize)]
 	pub struct AppConfig {
 		#[serde(default = "AppConfig::default_super_admin_username")]
 		pub super_admin_username: String,
@@ -83,11 +83,11 @@ mod config {
 		pub jwt_secret: String,
 
 		#[serde(default = "AppConfig::default_jwt_exp_after")]
-		#[serde_as(as = "DurationSeconds<u64>")]
+		#[serde_as(as = "DurationSeconds<i64>")]
 		pub jwt_exp_after: time::Duration,
 
 		#[serde(default = "AppConfig::default_session_exp_after")]
-		#[serde_as(as = "DurationSeconds<u64>")]
+		#[serde_as(as = "DurationSeconds<i64>")]
 		pub session_expire_after: time::Duration,
 	}
 
