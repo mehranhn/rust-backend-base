@@ -1,5 +1,5 @@
 ## Backend Monolith base example for rust.
-using axum sqlx seaorm.
+Using Axum and SeaORM.
 
 # Generate a migration
 ```bash
@@ -37,7 +37,7 @@ cargo run -- hash-password sha256 USERNAME PASSWORD
 |JWT_EXP_AFTER_SECONDS      |300                                           | jwt access token expires after n seconds             |
 |SESSION_EXP_AFTER_SECONDS  |15552000                                      | session expires after n seconds                      |
 
-you can also pass these options using a ron config file
+You can also pass these options using a ron config file
 
 ```bash
 cargo run -- run -c /path/to/config.ron
