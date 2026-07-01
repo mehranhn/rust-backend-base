@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[derive(DerivePartialModel)]
-#[sea_orm(entity = "super::super::models::session::Entity")]
+#[sea_orm(entity = "super::super::super::models::session::Entity")]
 pub struct PartialAuthData {
 	pub id: uuid::Uuid,
 	pub expire_at: Option<OffsetDateTime>,
@@ -16,7 +16,7 @@ pub struct PartialAuthData {
 }
 
 #[derive(DerivePartialModel)]
-#[sea_orm(entity = "super::super::models::user::Entity")]
+#[sea_orm(entity = "super::super::super::models::user::Entity")]
 pub struct PartialAuthDataUser {
 	pub id: uuid::Uuid,
 	pub role: Roles,

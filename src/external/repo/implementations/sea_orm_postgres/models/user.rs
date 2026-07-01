@@ -1,7 +1,10 @@
 use sea_orm::entity::prelude::*;
 use time::OffsetDateTime;
 
-use crate::{dtos::AdminDto, external::repo::implementations::sea_orm_postgres::types::roles::Roles};
+use crate::{
+	dtos::{AdminDto, AdminDtoSortColumns},
+	external::repo::implementations::sea_orm_postgres::types::roles::Roles,
+};
 
 #[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
@@ -51,6 +54,18 @@ impl Into<AdminDto> for Model {
 			username: self.username,
 			phone: self.phone,
 			email: self.email,
+		}
+	}
+}
+
+impl From<AdminDtoSortColumns> for Column {
+	fn from(value: AdminDtoSortColumns) -> Self {
+		match value {
+			AdminDtoSortColumns::Id => Self::Id,
+			AdminDtoSortColumns::CreatedAt => Self::CreatedAt,
+			AdminDtoSortColumns::Username => Self::Username,
+			AdminDtoSortColumns::Phone => Self::Phone,
+			AdminDtoSortColumns::Email => Self::Email,
 		}
 	}
 }

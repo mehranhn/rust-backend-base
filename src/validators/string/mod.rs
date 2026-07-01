@@ -254,7 +254,7 @@ impl Validate for StringVUrl {
 		if self.validate_url() {
 			Ok(())
 		} else {
-			Err("must be a valid email")
+			Err("must be a valid url")
 		}
 	}
 

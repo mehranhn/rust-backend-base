@@ -5,7 +5,7 @@ use crate::{
 };
 
 #[derive(DerivePartialModel)]
-#[sea_orm(entity = "super::super::models::user::Entity")]
+#[sea_orm(entity = "super::super::super::models::user::Entity")]
 pub struct PartialUserLogin {
 	pub id: uuid::Uuid,
 	pub role: Roles,

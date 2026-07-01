@@ -1,5 +1,6 @@
 mod connection;
 mod db_handle;
+mod ext;
 mod transaction;
 
 pub use connection::DbHandleConnection;

@@ -9,7 +9,7 @@ use utoipa::{
 use crate::dtos::PaginationFilterWithSearch;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
-pub struct PaginationFilterWithSearchOrder<T> {
+pub struct PaginationFilterWithSearchOrder<T: Copy> {
 	#[serde(flatten)]
 	page_take_search: PaginationFilterWithSearch,
 
@@ -20,7 +20,7 @@ pub struct PaginationFilterWithSearchOrder<T> {
 	is_asc: bool,
 }
 
-impl<T> Default for PaginationFilterWithSearchOrder<T> {
+impl<T: PartialSchema + Copy> Default for PaginationFilterWithSearchOrder<T> {
 	fn default() -> Self {
 		Self {
 			page_take_search: Default::default(),
@@ -30,7 +30,7 @@ impl<T> Default for PaginationFilterWithSearchOrder<T> {
 	}
 }
 
-impl<T> PaginationFilterWithSearchOrder<T> {
+impl<T: PartialSchema + Copy> PaginationFilterWithSearchOrder<T> {
 	pub fn page(&self) -> u64 {
 		self.page_take_search.page()
 	}
@@ -51,8 +51,8 @@ impl<T> PaginationFilterWithSearchOrder<T> {
 		self.page_take_search.search()
 	}
 
-	pub fn order_by_column(&self) -> &Option<T> {
-		&self.column
+	pub fn order_by_column(&self) -> Option<T> {
+		self.column
 	}
 
 	pub fn order_by_is_asc(&self) -> bool {
@@ -60,7 +60,7 @@ impl<T> PaginationFilterWithSearchOrder<T> {
 	}
 }
 
-impl<T: PartialSchema> IntoParams for PaginationFilterWithSearchOrder<T> {
+impl<T: PartialSchema + Copy> IntoParams for PaginationFilterWithSearchOrder<T> {
 	fn into_params(
 		parameter_in_provider: impl Fn() -> Option<utoipa::openapi::path::ParameterIn>,
 	) -> Vec<utoipa::openapi::path::Parameter> {
